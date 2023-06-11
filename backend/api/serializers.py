@@ -8,7 +8,9 @@ class CitySerializer(serializers.ModelSerializer):
         model = City
         fields = '__all__'
 
+
 class TicketSerializer(serializers.Serializer):
+    """Серилиализатор для вывода билетов."""
 
     origin = serializers.CharField(max_length=10)
     destination = serializers.CharField(max_length=10)
@@ -24,3 +26,17 @@ class TicketSerializer(serializers.Serializer):
     duration = serializers.IntegerField()
     link = serializers.URLField()
     currency = serializers.CharField(max_length=10)
+
+
+class TicketFindSerializer(serializers.Serializer):
+    origin = serializers.CharField(max_length=10)
+    destination = serializers.CharField(max_length=10)
+    departure_at = serializers.DateField()
+    return_at = serializers.DateField()
+    market= serializers.CharField(max_length=10)
+    token = serializers.CharField(max_length=10)
+
+    def get(self, validated_data):
+        print(self)
+        print(validated_data)
+        return validated_data
