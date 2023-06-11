@@ -1,0 +1,86 @@
+openapi: 3.0.2
+info:
+  title: 'AroundRussia'
+  version: '1.0'
+  contact:
+    email: igor.krupcko2010@yandex.ru
+paths:
+  /api/v1/cities/:
+    get:
+      operationId: listCities
+      description: 'Get all cities'
+      parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search of the city
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/City'
+          description: ''
+      tags:
+      - city
+  /api/v1/cities/{id}/:
+    get:
+      operationId: retrieveCity
+      description: 'Get a city on its ID'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: "A unique integer value identifying this City"
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search of the City
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/City'
+          description: ''
+      tags:
+      - city
+components:
+  schemas:
+    City:
+      type: object
+      properties:
+        code:
+          type: string
+          description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 IATA-\u043A\u043E\
+            \u0434 \u0433\u043E\u0440\u043E\u0434\u0430"
+          maxLength: 3
+        name:
+          type: string
+          description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043D\u0430\u0438\
+            \u043C\u0435\u043D\u043E\u0432\u0430\u043D\u0438\u0435 \u0433\u043E\u0440\
+            \u043E\u0434\u0430"
+          maxLength: 100
+        latitude:
+          type: number
+          description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\u043E\u043E\
+            \u0440\u0434\u0438\u043D\u0430\u0442\u0443 \u0448\u0438\u0440\u043E\u0442\
+            \u044B \u0433\u043E\u0440\u043E\u0434\u0430"
+        longitude:
+          type: number
+          description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\u043E\u043E\
+            \u0440\u0434\u0438\u043D\u0430\u0442\u0443 \u0434\u043E\u043B\u0433\u043E\
+            \u0442\u044B \u0433\u043E\u0440\u043E\u0434\u0430"
+      required:
+      - code
+      - name
+      - latitude
+      - longitude

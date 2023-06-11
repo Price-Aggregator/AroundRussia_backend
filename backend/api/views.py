@@ -1,8 +1,17 @@
+from rest_framework import filters, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from tickets.models import City
 
+from tickets.models import City
+from .serializers import CitySerializer
 from .utils import get_calendar_days
+
+
+class CityViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = CitySerializer
+    queryset = City.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('^name',)
 
 
 class CalendarView(APIView):
