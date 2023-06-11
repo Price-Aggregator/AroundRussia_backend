@@ -33,7 +33,7 @@ class TicketFindSerializer(serializers.Serializer):
     destination = serializers.CharField(max_length=10)
     departure_at = serializers.DateField()
     return_at = serializers.DateField()
-    market= serializers.CharField(max_length=10)
+    market = serializers.CharField(max_length=10)
     token = serializers.CharField(max_length=10)
 
     def get(self, validated_data):
