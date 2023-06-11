@@ -1,3 +1,11 @@
-from django.shortcuts import render
+from rest_framework import filters, viewsets
 
-# Create your views here.
+from tickets.models import City
+from .serializers import CitySerializer
+
+
+class CityViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = CitySerializer
+    queryset = City.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('^name',)
