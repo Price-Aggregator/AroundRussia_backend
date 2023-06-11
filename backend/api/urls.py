@@ -1,9 +1,7 @@
-
 from django.urls import path
 
-from .views import CalendarViewSet
-
+from .views import CalendarView
 
 urlpatterns = [
-    path('calendar', CalendarViewSet.as_view({'get': 'get'}))
+    path('calendar', CalendarView.as_view())
 ]
