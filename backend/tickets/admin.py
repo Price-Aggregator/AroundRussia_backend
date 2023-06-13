@@ -10,4 +10,4 @@ class CityAdmin(ModelAdmin):
     search_fields = ('name', 'code')
 
 
-admin.site.register(City)
+admin.site.register(City, CityAdmin)
