@@ -2,11 +2,11 @@ import datetime as dt
 import os
 
 import requests
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 from .constants import URL_CALENDAR
 
-load_dotenv()
+#load_dotenv()
 
 
 def get_calendar_prices(origin, destination, date):
