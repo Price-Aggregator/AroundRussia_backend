@@ -4,8 +4,6 @@ from rest_framework.routers import DefaultRouter
 
 from .views import CalendarView, CityViewSet, find_ticket, CityViewSet
 
-
-
 app_name = 'api'
 
 router = DefaultRouter()
