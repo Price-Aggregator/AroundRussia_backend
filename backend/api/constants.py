@@ -5,3 +5,7 @@ URL_WITH_CITIES = (
 )
 
 URL_CALENDAR = ('https://api.travelpayouts.com/aviasales/v3/grouped_prices')
+
+URL_SEARCH = 'https://api.travelpayouts.com/aviasales/v3/prices_for_dates'
+
+COUNT_TICKET = 1000
