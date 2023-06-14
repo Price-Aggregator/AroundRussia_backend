@@ -1,0 +1,18 @@
+[flake8]
+max-line-length = 79
+extend-exclude =
+    */migrations/,
+    venv/,
+    env/
+ignore =
+    # line break before binary operator
+    W503,
+    # redefinition of unused name from line n
+    F811,
+    # isort found an import in the wrong position
+    I001,
+    # unnecessary elif after return statement
+    R505
+per-file-ignores =
+    # line too long (82 > 79 characters)
+    */settings.py:E501
