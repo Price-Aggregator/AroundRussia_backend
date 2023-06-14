@@ -1,4 +1,5 @@
 import datetime as dt
+from datetime import datetime, timedelta
 import os
 
 import requests
@@ -61,3 +62,13 @@ def get_calendar_days(request):
         day = len(previous_month) - (15 - date_req.day)
         return data[day:day + 30]
     return current_month
+
+
+def add_arrival_time(obj):
+    tickets = obj['data']
+    for ticket in tickets:
+        departure_time = datetime.fromisoformat(ticket['departure_at'])
+        way = timedelta(minutes=ticket['duration_to'])
+        arrival_time = departure_time + way
+        ticket['arrival_time'] = arrival_time
+    return obj

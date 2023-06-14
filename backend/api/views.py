@@ -8,9 +8,10 @@ from rest_framework.views import APIView
 
 from tickets.models import City
 from .constants import COUNT_TICKET, URL_SEARCH
-from .filter import sort_by_time
+from .filter import sort_by_time, sort_transfer
 from .serializers import CitySerializer, TicketSerializer
-from .utils import get_calendar_days
+from .utils import add_arrival_time, get_calendar_days
+from .validators import params_validation
 
 load_dotenv()
 
@@ -52,15 +53,17 @@ class SearchTicketView(APIView):
         """Функция для поиска билетов."""
 
         params = request.data
-        params['token'] = TOKEN
-        params['limit'] = COUNT_TICKET
-        if params['sorting'] == 'time':
-            params['sorting'] = 'price'
-            response_data = requests.get(URL_SEARCH, params=params,).json()
-            response_data = sort_by_time(response_data)
-            my_serializer = TicketSerializer(data=response_data, many=True)
-            return Response(my_serializer.initial_data)
-        else:
-            response_data = requests.get(URL_SEARCH, params=params,).json()
+        if params_validation(params):
+            params['token'] = TOKEN
+            params['limit'] = COUNT_TICKET
+            if params['sorting'] == 'time':
+                params['sorting'] = 'price'
+                response_data = requests.get(URL_SEARCH, params=params,).json()
+                response_data = sort_by_time(response_data)
+            else:
+                response_data = requests.get(URL_SEARCH, params=params,).json()
+            if params['direct'] == 'true':
+                response_data = sort_transfer(response_data)
+            response_data = add_arrival_time(response_data)
             my_serializer = TicketSerializer(data=response_data, many=True)
             return Response(my_serializer.initial_data)

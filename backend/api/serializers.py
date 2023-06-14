@@ -26,3 +26,4 @@ class TicketSerializer(serializers.Serializer):
     duration = serializers.IntegerField()
     link = serializers.URLField()
     currency = serializers.CharField(max_length=10)
+    arrival_time = serializers.DateField()
