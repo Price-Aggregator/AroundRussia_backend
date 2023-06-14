@@ -27,7 +27,7 @@ class CalendarView(APIView):
         """
         cities = [request.GET.get('origin'), request.GET.get('destination')]
         for code in cities:
-            if not City.objects.filter(code=code):
+            if not City.objects.filter(code=code).exists():
                 return Response(
                     {
                         'InvalidIATA-code': f'Incorrect IATA-code for {code}'
