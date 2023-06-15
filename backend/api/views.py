@@ -1,4 +1,5 @@
 import os
+from http import HTTPStatus
 
 from dotenv import load_dotenv
 import requests
@@ -53,9 +54,9 @@ class SearchTicketView(APIView):
         """Функция для поиска билетов."""
 
         params = request.data
+        params['token'] = TOKEN
+        params['limit'] = COUNT_TICKET
         if params_validation(params):
-            params['token'] = TOKEN
-            params['limit'] = COUNT_TICKET
             if params['sorting'] == 'time':
                 params['sorting'] = 'price'
                 response_data = requests.get(URL_SEARCH, params=params,).json()
@@ -67,3 +68,4 @@ class SearchTicketView(APIView):
             response_data = add_arrival_time(response_data)
             my_serializer = TicketSerializer(data=response_data, many=True)
             return Response(my_serializer.initial_data)
+        return Response(HTTPStatus.BAD_REQUEST)
