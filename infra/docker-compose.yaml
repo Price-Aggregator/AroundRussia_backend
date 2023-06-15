@@ -26,6 +26,7 @@ services:
       - media_value:/app/media/
     depends_on:
       - db
+      - redis
     env_file:
       - ./.env
 
