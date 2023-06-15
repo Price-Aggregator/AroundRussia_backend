@@ -14,6 +14,10 @@ services:
 #    depends_on:
 #      - db
 
+  redis:
+    image: redis:latest
+    restart: always
+
   backend:
     image: agregatorproject/around-russia-backend:latest
     restart: always
