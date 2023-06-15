@@ -1,10 +1,19 @@
+import os
+
+from dotenv import load_dotenv
+import requests
 from rest_framework import filters, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from tickets.models import City
-
-from .serializers import CitySerializer
+from .constants import COUNT_TICKET, URL_SEARCH
+from .filter import sort_by_time
+from .serializers import CitySerializer, TicketSerializer
 from .utils import get_calendar_days
+
+load_dotenv()
+
+TOKEN = os.getenv('TOKEN')
 
 
 class CityViewSet(viewsets.ReadOnlyModelViewSet):
@@ -27,7 +36,7 @@ class CalendarView(APIView):
         """
         cities = [request.GET.get('origin'), request.GET.get('destination')]
         for code in cities:
-            if not City.objects.filter(code=code):
+            if not City.objects.filter(code=code).exists():
                 return Response(
                     {
                         'InvalidIATA-code': f'Incorrect IATA-code for {code}'
@@ -35,3 +44,22 @@ class CalendarView(APIView):
                 )
         response = get_calendar_days(request)
         return Response(response)
+
+
+class SearchTicketView(APIView):
+    def post(self, request):
+        """Функция для поиска билетов."""
+
+        params = request.data
+        params['token'] = TOKEN
+        params['limit'] = COUNT_TICKET
+        if params['sorting'] == 'time':
+            params['sorting'] = 'price'
+            response_data = requests.get(URL_SEARCH, params=params,).json()
+            response_data = sort_by_time(response_data)
+            my_serializer = TicketSerializer(data=response_data, many=True)
+            return Response(my_serializer.initial_data)
+        else:
+            response_data = requests.get(URL_SEARCH, params=params,).json()
+            my_serializer = TicketSerializer(data=response_data, many=True)
+            return Response(my_serializer.initial_data)
