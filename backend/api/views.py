@@ -3,10 +3,9 @@ from http import HTTPStatus
 
 from dotenv import load_dotenv
 import requests
-from rest_framework import filters, viewsets
+from rest_framework import filters, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from tickets.models import City
 from .constants import COUNT_TICKET, URL_SEARCH
 from .filter import sort_by_time, sort_transfer
@@ -42,11 +41,15 @@ class CalendarView(APIView):
             if not City.objects.filter(code=code).exists():
                 return Response(
                     {
-                        'InvalidIATA-code': f'Incorrect IATA-code for {code}'
-                    }
+                        'InvalidIATA-code': f'Incorrect IATA-code for {code}',
+                    }, status=status.HTTP_404_NOT_FOUND
                 )
         response = get_calendar_days(request)
-        return Response(response)
+        if 'InvalidDate' in response:
+            stat = status.HTTP_400_BAD_REQUEST
+        else:
+            stat = status.HTTP_200_OK
+        return Response(response, status=stat)
 
 
 class SearchTicketView(APIView):
