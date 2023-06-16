@@ -1,17 +1,17 @@
 import os
 
-from dotenv import load_dotenv
+from drf_spectacular.utils import (extend_schema, inline_serializer,
+                                   OpenApiParameter)
 import requests
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, serializers, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from tickets.models import City
 from .constants import COUNT_TICKET, URL_SEARCH
 from .filter import sort_by_time
 from .serializers import CitySerializer, TicketSerializer
 from .utils import get_calendar_days
 
-load_dotenv()
+from tickets.models import City
 
 TOKEN = os.getenv('TOKEN')
 
@@ -24,15 +24,47 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CalendarView(APIView):
-
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                'origin',
+                description='IATA-code for origin city'
+            ),
+            OpenApiParameter(
+                'destination',
+                description='IATA-code for destination city'
+            ),
+            OpenApiParameter(
+                'departure_at',
+                description="""Date of departure from the city departure
+                                 (in the format YYYY-MM-DD)"""
+            )
+        ],
+        responses={
+            200: inline_serializer(
+                'Getting date prices',
+                fields={
+                    'date': serializers.CharField(),
+                    'price': serializers.IntegerField()
+                }
+            ),
+            400: inline_serializer(
+                'Bad request',
+                fields={
+                    'InvalidDate': serializers.CharField()
+                }
+            ),
+            404: inline_serializer(
+                'Not found',
+                fields={
+                    'InvalidIATA-code': serializers.CharField()
+                }
+            )
+        }
+    )
     def get(self, request):
         """
         View for price calendar.
-        :param origin: The IATA-code for city departure.
-        :param destination: The IATA-code for city destination.
-        :param departure_at: Date of departure from the
-        city departure (in the format YYYY-MM-DD).
-        :return: data{date: price} for departure_at +-15 days in advance.
         """
         cities = [request.GET.get('origin'), request.GET.get('destination')]
         for code in cities:
