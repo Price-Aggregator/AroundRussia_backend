@@ -1,19 +1,17 @@
 import os
 
-from dotenv import load_dotenv
 from drf_spectacular.utils import (extend_schema, inline_serializer,
                                    OpenApiParameter)
 import requests
 from rest_framework import filters, serializers, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from tickets.models import City
 from .constants import COUNT_TICKET, URL_SEARCH
 from .filter import sort_by_time
 from .serializers import CitySerializer, TicketSerializer
 from .utils import get_calendar_days
 
-load_dotenv()
+from tickets.models import City
 
 TOKEN = os.getenv('TOKEN')
 
