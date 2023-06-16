@@ -19,7 +19,8 @@ services:
     restart: always
 
   backend:
-    image: agregatorproject/around-russia-backend:latest
+    build:
+      context: ../backend/
     restart: always
     volumes:
       - static_value:/app/static/
