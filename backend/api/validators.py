@@ -20,12 +20,12 @@ def params_validation(params):  # noqa
             return False
 
     if 'departure_at' in params:
-        departure_at = datetime.strptime(params['departure_at'], '%Y-%m')
+        departure_at = datetime.strptime(params['departure_at'], '%Y-%m-%d')
         if departure_at < datetime.today():
             return False
 
     if 'return_at' in params:
-        return_at = datetime.strptime(params['return_at'], '%Y-%m')
+        return_at = datetime.strptime(params['return_at'], '%Y-%m-%d')
         if return_at < datetime.today():
             return False
 
