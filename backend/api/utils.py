@@ -8,7 +8,7 @@ from .constants import CACHE_TTL, URL_CALENDAR
 
 
 def get_calendar_prices(origin, destination, date):
-    HEADERS = {'X-Access-Token': os.getenv('TOKEN')}
+    headers = {'X-Access-Token': os.environ.get('TOKEN')}
     payload = {
         'origin': origin,
         'destination': destination,
@@ -16,7 +16,7 @@ def get_calendar_prices(origin, destination, date):
         'group_by': 'departure_at'}
     response = requests.get(
         URL_CALENDAR,
-        headers=HEADERS,
+        headers=headers,
         params=payload
     ).json()
     data = response['data']

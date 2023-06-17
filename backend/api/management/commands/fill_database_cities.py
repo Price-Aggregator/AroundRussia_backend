@@ -1,7 +1,5 @@
 from requests import get
-
 from django.core.management import BaseCommand
-
 from api.constants import URL_WITH_CITIES
 from tickets.models import City
 
