@@ -2,11 +2,8 @@ import datetime as dt
 import os
 
 import requests
-from dotenv import load_dotenv
 
 from .constants import URL_CALENDAR
-
-load_dotenv()
 
 
 def get_calendar_prices(origin, destination, date):
@@ -50,7 +47,7 @@ def get_calendar_days(request):
         data = current_month + next_month
         if diff.days <= 15:
             return data[0: diff.days + 15]
-        day = len(current_month) + date_req.day - 45
+        day = len(current_month) + date_req.day - 46
         return data[day:day + 30]
     elif date_previous.month < date_req.month:
         date = str(date_previous)
