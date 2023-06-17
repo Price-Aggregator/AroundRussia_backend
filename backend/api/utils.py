@@ -1,9 +1,10 @@
 import datetime as dt
 import os
 
+from django.core.cache import cache
 import requests
 
-from .constants import URL_CALENDAR
+from .constants import CACHE_TTL, URL_CALENDAR
 
 
 def get_calendar_prices(origin, destination, date):
@@ -58,3 +59,21 @@ def get_calendar_days(request):
         day = len(previous_month) - (15 - date_req.day)
         return data[day:day + 30]
     return current_month
+
+
+def get_from_cache(url):
+    """
+    Проверяет url на вхождение в кэш.
+    Возвращает json-результат из кэша если найдет.
+    Если не найдет - возвращает None.
+    """
+    return cache.get(url, default=None)
+
+
+def set_the_cache(url, result):
+    """
+    Принимает в параметрах url и результат запроса на этот урл - json-строку.
+    Записывает результат в кэш по ключу - url.
+    TTL значение берется из константы.
+    """
+    cache.set(url, result, timeout=CACHE_TTL)

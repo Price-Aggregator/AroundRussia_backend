@@ -9,3 +9,5 @@ URL_CALENDAR = ('https://api.travelpayouts.com/aviasales/v3/grouped_prices')
 URL_SEARCH = 'https://api.travelpayouts.com/aviasales/v3/prices_for_dates'
 
 COUNT_TICKET = 1000
+
+CACHE_TTL = 60  # Thats one minute for testing purpose, 12 hours is 43200

@@ -14,14 +14,20 @@ services:
     depends_on:
       - db
 
+  redis:
+    image: redis:latest
+    restart: always
+
   backend:
-    image: agregatorproject/around-russia-backend:latest
+    build:
+      context: ../backend/
     restart: always
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
     depends_on:
       - db
+      - redis
     env_file:
       - ./.env
 
