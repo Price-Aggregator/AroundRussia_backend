@@ -7,12 +7,12 @@ services:
     env_file:
       - ./.env
 
-#  frontend:
-#    image: agregatorproject/around-russia-frontend:latest
-#    volumes:
-#      - ../frontend/:/app/result_build/
-#    depends_on:
-#      - db
+  frontend:
+    image: agregatorproject/around-russia-frontend:latest
+    volumes:
+      - ./frontend/:/app/result_build/
+    depends_on:
+      - db
 
   backend:
     image: agregatorproject/around-russia-backend:latest

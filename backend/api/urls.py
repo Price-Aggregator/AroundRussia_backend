@@ -15,4 +15,3 @@ urlpatterns = [
     path('calendar', CalendarView.as_view()),
     path('airline', SearchTicketView.as_view()),
 ]
-
