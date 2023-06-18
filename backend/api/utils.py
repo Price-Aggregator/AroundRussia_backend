@@ -1,13 +1,14 @@
 import datetime as dt
 import os
 
+from django.core.cache import cache
 import requests
 
-from .constants import URL_CALENDAR, URL_AVIASALES
+from .constants import CACHE_TTL, URL_CALENDAR, URL_AVIASALES
 
 
 def get_calendar_prices(origin, destination, date):
-    HEADERS = {'X-Access-Token': os.getenv('TOKEN')}
+    headers = {'X-Access-Token': os.environ.get('TOKEN')}
     payload = {
         'origin': origin,
         'destination': destination,
@@ -15,7 +16,7 @@ def get_calendar_prices(origin, destination, date):
         'group_by': 'departure_at'}
     response = requests.get(
         URL_CALENDAR,
-        headers=HEADERS,
+        headers=headers,
         params=payload
     ).json()
     data = response['data']
@@ -75,3 +76,21 @@ def add_url(obj):
     for ticket in tickets:
         ticket['link'] = URL_AVIASALES + ticket['link']
     return obj
+
+
+def get_from_cache(url):
+    """
+    Проверяет url на вхождение в кэш.
+    Возвращает json-результат из кэша если найдет.
+    Если не найдет - возвращает None.
+    """
+    return cache.get(url, default=None)
+
+
+def set_the_cache(url, result):
+    """
+    Принимает в параметрах url и результат запроса на этот урл - json-строку.
+    Записывает результат в кэш по ключу - url.
+    TTL значение берется из константы.
+    """
+    cache.set(url, result, timeout=CACHE_TTL)

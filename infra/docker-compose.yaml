@@ -5,25 +5,31 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data/
     env_file:
-      - ./.env
+      - ./test-env
 
-#  frontend:
-#    image: agregatorproject/around-russia-frontend:latest
-#    volumes:
-#      - ../frontend/:/app/result_build/
-#    depends_on:
-#      - db
+  frontend:
+    image: agregatorproject/around-russia-frontend:latest
+    volumes:
+      - ./frontend/:/app/result_build/
+    depends_on:
+      - db
+
+  redis:
+    image: redis:latest
+    restart: always
 
   backend:
-    image: agregatorproject/around-russia-backend:latest
+    build:
+      context: ../backend/
     restart: always
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
     depends_on:
       - db
+      - redis
     env_file:
-      - ./.env
+      - ./test-env
 
   nginx:
     image: nginx:1.19.3
