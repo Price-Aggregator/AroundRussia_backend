@@ -19,6 +19,8 @@ def get_calendar_prices(origin, destination, date):
         headers=headers,
         params=payload
     ).json()
+    if 'error' in response:
+        return {'error': response['error']}
     data = response['data']
     price = []
     for res in data:
@@ -38,10 +40,12 @@ def get_calendar_days(request):
     date_req = dt.datetime.strptime(date, '%Y-%m-%d').date()
     date_future = date_req + period
     date_previous = date_req - period
-    current_month = get_calendar_prices(origin, destination, date)
-    diff = date_req - date_now
     if date_req < date_now:
         return {'InvalidDate': 'Entered past date'}
+    current_month = get_calendar_prices(origin, destination, date)
+    if 'error' in current_month:
+        return current_month
+    diff = date_req - date_now
     if date_req.month < date_future.month:
         date = str(date_future)
         next_month = get_calendar_prices(origin, destination, date)
