@@ -177,7 +177,8 @@ class SearchTicketView(APIView):
         params['token'] = TOKEN
         params['limit'] = COUNT_TICKET
         if params_validation(params):
-            if params['sorting'] == 'time':
+            if 'sorting' in params and params['sorting'] == 'time':
+                print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
                 params['sorting'] = 'price'
                 response_data = requests.get(URL_SEARCH, params=params,).json()
                 response_data = sort_by_time(response_data)

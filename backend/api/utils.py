@@ -1,5 +1,4 @@
 import datetime as dt
-from datetime import datetime, timedelta
 import os
 
 import requests
@@ -64,8 +63,8 @@ def get_calendar_days(request):
 def add_arrival_time(obj):
     tickets = obj['data']
     for ticket in tickets:
-        departure_time = datetime.fromisoformat(ticket['departure_at'])
-        way = timedelta(minutes=ticket['duration_to'])
+        departure_time = dt.datetime.fromisoformat(ticket['departure_at'])
+        way = dt.timedelta(minutes=ticket['duration_to'])
         arrival_time = departure_time + way
         ticket['arrival_time'] = arrival_time
     return obj
