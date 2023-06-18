@@ -6,12 +6,13 @@ import requests
 from rest_framework import filters, serializers, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from .constants import COUNT_TICKET, URL_SEARCH
 from .filter import sort_by_time
 from .serializers import CitySerializer, TicketSerializer
+from tickets.models import City
 from .utils import get_calendar_days
 
-from tickets.models import City
 
 TOKEN = os.getenv('TOKEN')
 
@@ -51,13 +52,7 @@ class CalendarView(APIView):
             400: inline_serializer(
                 'Bad request',
                 fields={
-                    'InvalidDate': serializers.CharField()
-                }
-            ),
-            404: inline_serializer(
-                'Not found',
-                fields={
-                    'InvalidIATA-code': serializers.CharField()
+                    'ERROR': serializers.CharField()
                 }
             )
         }
@@ -75,7 +70,7 @@ class CalendarView(APIView):
                     }, status=status.HTTP_404_NOT_FOUND
                 )
         response = get_calendar_days(request)
-        if 'InvalidDate' in response:
+        if 'InvalidDate' or 'error' in response:
             stat = status.HTTP_400_BAD_REQUEST
         else:
             stat = status.HTTP_200_OK
