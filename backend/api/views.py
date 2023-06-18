@@ -14,7 +14,7 @@ from .filter import sort_by_time, sort_transfer
 from .serializers import (CitySerializer, TicketSerializer,
                           TicketRequestSerializer,
                           TicketResponseSerializer)
-from .utils import add_arrival_time, get_calendar_days
+from .utils import add_arrival_time, add_url, get_calendar_days
 from .validators import params_validation
 
 load_dotenv()
@@ -178,7 +178,6 @@ class SearchTicketView(APIView):
         params['limit'] = COUNT_TICKET
         if params_validation(params):
             if 'sorting' in params and params['sorting'] == 'time':
-                print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
                 params['sorting'] = 'price'
                 response_data = requests.get(URL_SEARCH, params=params,).json()
                 response_data = sort_by_time(response_data)
@@ -187,6 +186,7 @@ class SearchTicketView(APIView):
             if 'direct' in params and params['direct'] == 'true':
                 response_data = sort_transfer(response_data)
             response_data = add_arrival_time(response_data)
+            response_data = add_url(response_data)
             my_serializer = TicketSerializer(data=response_data, many=True)
             return Response(my_serializer.initial_data)
         return Response(HTTPStatus.BAD_REQUEST)

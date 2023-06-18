@@ -8,4 +8,6 @@ URL_CALENDAR = ('https://api.travelpayouts.com/aviasales/v3/grouped_prices')
 
 URL_SEARCH = 'https://api.travelpayouts.com/aviasales/v3/prices_for_dates'
 
+URL_AVIASALES = 'https://www.aviasales.ru'
+
 COUNT_TICKET = 1000

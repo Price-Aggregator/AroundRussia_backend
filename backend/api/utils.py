@@ -3,7 +3,7 @@ import os
 
 import requests
 
-from .constants import URL_CALENDAR
+from .constants import URL_CALENDAR, URL_AVIASALES
 
 
 def get_calendar_prices(origin, destination, date):
@@ -67,4 +67,11 @@ def add_arrival_time(obj):
         way = dt.timedelta(minutes=ticket['duration_to'])
         arrival_time = departure_time + way
         ticket['arrival_time'] = arrival_time
+    return obj
+
+
+def add_url(obj):
+    tickets = obj['data']
+    for ticket in tickets:
+        ticket['link'] = URL_AVIASALES + ticket['link']
     return obj
