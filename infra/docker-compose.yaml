@@ -7,12 +7,12 @@ services:
     env_file:
       - ./test-env
 
-  frontend:
-    image: agregatorproject/around-russia-frontend:latest
-    volumes:
-      - ./frontend/:/app/result_build/
-    depends_on:
-      - db
+  # frontend:
+  #   image: agregatorproject/around-russia-frontend:latest
+  #   volumes:
+  #     - ./frontend/:/app/result_build/
+  #   depends_on:
+  #     - db
 
   redis:
     image: redis:latest
@@ -36,7 +36,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./frontend/build:/usr/share/nginx/html/
       - static_value:/var/html/static/
       - media_value:/var/html/media/
