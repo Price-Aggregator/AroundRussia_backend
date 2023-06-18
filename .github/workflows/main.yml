@@ -1,4 +1,4 @@
-name: AroundRussia workflow
+name: AroundRussia workflow v1
 
 on:
   push:
