@@ -1,4 +1,4 @@
-version: '3.3'
+version: '3.8'
 services:
   db:
     image: postgres:13.4
@@ -6,13 +6,6 @@ services:
       - postgres:/var/lib/postgresql/data/
     env_file:
       - ./test-env
-
-  frontend:
-    image: agregatorproject/around-russia-frontend:latest
-    volumes:
-      - ./frontend/:/app/result_build/
-    depends_on:
-      - db
 
   redis:
     image: redis:latest
@@ -32,11 +25,11 @@ services:
       - ./test-env
 
   nginx:
-    image: nginx:1.19.3
+    image: nginx:1.21.3
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./frontend/build:/usr/share/nginx/html/
       - static_value:/var/html/static/
       - media_value:/var/html/media/
