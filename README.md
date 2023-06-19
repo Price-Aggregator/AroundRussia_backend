@@ -19,17 +19,6 @@ git pull
 cd infra/
 ```
 
-Создать test_env файл и заполнить его по шаблону:
-```
-DB_ENGINE=django.db.backends.postgresql
-DB_NAME=<название базы данных>
-POSTGRES_USER=<имя пользователя базы данных>
-POSTGRES_PASSWORD=<пароль базы данных>
-DB_HOST=db
-DB_PORT=<порт>(по умолчанию = 5432)
-TOKEN=<токен travelpayouts>
-```
-
 В этой же папке выполнить команду развертывания проекта:
 ```
 docker-compose up -d
