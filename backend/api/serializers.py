@@ -25,3 +25,34 @@ class TicketSerializer(serializers.Serializer):
     duration = serializers.IntegerField()
     link = serializers.URLField()
     currency = serializers.CharField(max_length=10)
+    arrival_time = serializers.DateField()
+
+
+class TicketDataserializer(serializers.Serializer):
+    origin = serializers.CharField()
+    destination = serializers.CharField()
+    origin_airport = serializers.CharField()
+    destination_airport = serializers.CharField()
+    price = serializers.IntegerField()
+    airline = serializers.CharField()
+    flight_number = serializers.CharField()
+    departure_at = serializers.DateTimeField()
+    transfers = serializers.IntegerField()
+    return_transfers = serializers.IntegerField()
+    duration = serializers.IntegerField()
+    duration_to = serializers.IntegerField()
+    duration_back = serializers.IntegerField()
+    link = serializers.CharField()
+
+
+class TicketResponseSerializer(serializers.Serializer):
+    status = serializers.BooleanField()
+    data = TicketDataserializer(many=True)
+    currency = serializers.CharField()
+
+
+class TicketRequestSerializer(serializers.Serializer):
+    origin = serializers.CharField()
+    destination = serializers.CharField()
+    sorting = serializers.CharField()
+    departure_at = serializers.CharField()

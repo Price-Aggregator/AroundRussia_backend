@@ -4,7 +4,7 @@ import os
 from django.core.cache import cache
 import requests
 
-from .constants import CACHE_TTL, URL_CALENDAR
+from .constants import CACHE_TTL, URL_CALENDAR, URL_AVIASALES
 
 
 def get_calendar_prices(origin, destination, date):
@@ -63,6 +63,23 @@ def get_calendar_days(request):
         day = len(previous_month) - (15 - date_req.day)
         return data[day:day + 30]
     return current_month
+
+
+def add_arrival_time(obj):
+    tickets = obj['data']
+    for ticket in tickets:
+        departure_time = dt.datetime.fromisoformat(ticket['departure_at'])
+        way = dt.timedelta(minutes=ticket['duration_to'])
+        arrival_time = departure_time + way
+        ticket['arrival_time'] = arrival_time
+    return obj
+
+
+def add_url(obj):
+    tickets = obj['data']
+    for ticket in tickets:
+        ticket['link'] = URL_AVIASALES + ticket['link']
+    return obj
 
 
 def get_from_cache(url):
