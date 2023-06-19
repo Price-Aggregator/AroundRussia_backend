@@ -33,21 +33,21 @@ class CalendarView(APIView):
         parameters=[
             OpenApiParameter(
                 'origin',
-                description='IATA-code for origin city'
+                description='IATA-код города отправления'
             ),
             OpenApiParameter(
                 'destination',
-                description='IATA-code for destination city'
+                description='IATA-код города назначения'
             ),
             OpenApiParameter(
                 'departure_at',
-                description="""Date of departure from the city departure
-                                 (in the format YYYY-MM-DD)"""
+                description="""Дата отправления из города отправления
+                                 (в формате YYYY-MM-DD)"""
             )
         ],
         responses={
             200: inline_serializer(
-                'Getting date prices',
+                'Получение дат цен',
                 fields={
                     'date': serializers.CharField(),
                     'price': serializers.IntegerField()
@@ -63,7 +63,7 @@ class CalendarView(APIView):
     )
     def get(self, request):
         """
-        View for price calendar.
+        View для календаря цен.
         """
         cities = [request.GET.get('origin'), request.GET.get('destination')]
         for code in cities:
@@ -89,56 +89,54 @@ class SearchTicketView(APIView):
             OpenApiParameter(
                 'origin',
                 description=(
-                    '(optional if destination set) IATA-code for origin city')
+                    '(Опционально если указан destination)'
+                    'IATA-код города отправления')
             ),
             OpenApiParameter(
                 'destination',
                 description=(
-                    '(optional if origin set) IATA-code for destination city')
+                    '(Опционально если указан origin)'
+                    'IATA-код города назначения')
             ),
             OpenApiParameter(
                 'departure_at',
                 description=(
-                    '(optional) Date of departure from the city departure'
-                    '(in the format YYYY-MM-DD)')
+                    '(Опционально) Дата отправления из города отправления'
+                    '(в формате YYYY-MM-DD)')
             ),
             OpenApiParameter(
                 'return_at',
                 description=(
-                    '(optional) Date of return from the city departure'
-                    '(in the format YYYY-MM-DD)')
+                    '(Опционально) Дата возвращения'
+                    '(в формате YYYY-MM-DD)')
             ),
             OpenApiParameter(
                 'one_way',
                 description=(
-                    '(optional) One way ticket. true or false true by default')
+                    '(Опционально) Билет в один конец.'
+                    'true или false, true по умолчанию.')
             ),
             OpenApiParameter(
                 'direct',
                 description=(
-                    '(optional) Only direct flights.'
-                    'true or false. false by default')
+                    '(Опционально) Только рейсы без пересадок.'
+                    'true или false. false по умолчанию.')
             ),
             OpenApiParameter(
                 'limit',
                 description=(
-                    '(optional) Number of records in answer.'
-                    'max=1000. 30 by default')
+                    '(Опционально) Количество записей в ответе.'
+                    'max=1000. 30 по умолчанию')
             ),
             OpenApiParameter(
                 'page',
-                description='(optional) Page number.'
+                description='(Опционально) Номер страницы.'
             ),
             OpenApiParameter(
                 'sorting',
                 description=(
-                    '(optional) Sorting type.'
-                    'Available sorting: time, price, route.')
-            ),
-
-            OpenApiParameter(
-                'token',
-                description='(required if not in .env) travelpayout API token'
+                    'Тип сортировки.'
+                    'Допустимые значения: time, price, route.')
             )
     ],
         request=TicketRequestSerializer(),
