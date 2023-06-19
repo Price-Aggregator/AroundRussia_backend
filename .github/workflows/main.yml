@@ -6,15 +6,14 @@ on:
       - main
       - develop
 
-permissions:
-  contents: read
-
 jobs:
    tests:
      runs-on: ubuntu-latest
      steps:
        - name: Checkout repo
          uses: actions/checkout@v3
+         with:
+           submodules: recursive
        - name: Set up Python
          uses: actions/setup-python@v2
          with:
