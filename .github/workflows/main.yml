@@ -1,4 +1,4 @@
-name: AroundRussia workflow test
+name: AroundRussia workflow
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
      steps:
        - uses: action/checkout@v3
          with:
-           repository: 'Price-Aggregator/AroundRussia_backend'
+           repository: Price-Aggregator/AroundRussia_backend
        - name: Set up Python
          uses: actions/setup-python@v2
          with:
