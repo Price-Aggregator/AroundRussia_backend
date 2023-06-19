@@ -17,7 +17,6 @@ from .utils import add_arrival_time, add_url, get_calendar_days
 from .validators import params_validation
 from tickets.models import City
 
-
 TOKEN = os.getenv('TOKEN')
 
 
