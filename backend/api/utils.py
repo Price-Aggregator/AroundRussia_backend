@@ -2,32 +2,36 @@ import datetime as dt
 import os
 
 from django.core.cache import cache
+from django.utils import timezone
 import requests
 
-from .constants import CACHE_TTL, URL_CALENDAR, URL_AVIASALES
+from .constants import CACHE_TTL, MONTH_SLICE, URL_CALENDAR, URL_AVIASALES
 
 
 def get_calendar_prices(origin, destination, date):
     headers = {'X-Access-Token': os.environ.get('TOKEN')}
-    payload = {
-        'origin': origin,
-        'destination': destination,
-        'departure_at': date[0:7],
-        'group_by': 'departure_at'}
+    request_url = (f'{URL_CALENDAR}?'
+                   f'origin={origin}&'
+                   f'destination={destination}&'
+                   f'departure_at={date[0:MONTH_SLICE]}&'
+                   f'group_by=departure_at')
+    data_check = get_from_cache(request_url)
+    if data_check is not None:
+        return data_check
     response = requests.get(
-        URL_CALENDAR,
-        headers=headers,
-        params=payload
-    ).json()
-    if 'error' in response:
-        return {'error': response['error']}
-    data = response['data']
+        request_url,
+        headers=headers
+    )
+    if 'error' in response.json():
+        return {'error': response.json()['error']}
+    data = response.json()['data']
     price = []
-    for res in data:
+    for result in data:
         price.append({
-            'date': res,
-            'price': data[res]['price']
+            'date': result,
+            'price': data[result]['price']
         })
+    set_the_cache(response.url, price)
     return price
 
 
@@ -35,13 +39,13 @@ def get_calendar_days(request):
     date = request.GET.get('departure_at')
     origin = request.GET.get('origin')
     destination = request.GET.get('destination')
-    period = dt.timedelta(days=15)
-    date_now = dt.datetime.now().date()
-    date_req = dt.datetime.strptime(date, '%Y-%m-%d').date()
+    period = timezone.timedelta(days=15)
+    date_now = timezone.datetime.now().date()
+    date_req = timezone.datetime.strptime(date, '%Y-%m-%d').date()
     date_future = date_req + period
     date_previous = date_req - period
     if date_req < date_now:
-        return {'InvalidDate': 'Entered past date'}
+        return {'InvalidDate': 'Дата не может быть раньше текущего числа'}
     current_month = get_calendar_prices(origin, destination, date)
     if 'error' in current_month:
         return current_month
