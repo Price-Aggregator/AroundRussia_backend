@@ -1,4 +1,4 @@
-name: AroundRussia workflow v1
+name: AroundRussia workflow
 
 on:
   push:
@@ -9,10 +9,8 @@ on:
 jobs:
    tests:
      runs-on: ubuntu-latest
-     permissions:
-       contents: read
      steps:
-       - uses: action/checkout@v3
+       - uses: action/checkout
        - name: Set up Python
          uses: actions/setup-python@v2
          with:
