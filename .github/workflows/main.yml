@@ -13,10 +13,8 @@ jobs:
    tests:
      runs-on: ubuntu-latest
      steps:
-       - uses: action/checkout@v3
-         with:
-           repository: Price-Aggregator/AroundRussia_backend
-           token: ${{ secrets.PAT }}
+       - name: Checkout repo
+         uses: actions/checkout@v3
        - name: Set up Python
          uses: actions/setup-python@v2
          with:
