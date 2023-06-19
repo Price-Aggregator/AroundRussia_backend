@@ -11,6 +11,7 @@ class CitySerializer(serializers.ModelSerializer):
 class TicketSerializer(serializers.Serializer):
     """Серилиализатор для вывода билетов."""
 
+    id = serializers.CharField()
     origin = serializers.CharField(max_length=10)
     destination = serializers.CharField(max_length=10)
     origin_airport = serializers.CharField(max_length=10)
