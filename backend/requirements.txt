@@ -26,7 +26,6 @@ pycodestyle==2.10.0
 pyflakes==3.0.1
 pyrsistent==0.19.3
 python-dotenv==1.0.0
-python_dateutil==2.8.2
 pytz==2023.3
 PyYAML==6.0
 redis==4.5.5
