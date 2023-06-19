@@ -2,7 +2,7 @@ import os
 from http import HTTPStatus
 
 from drf_spectacular.utils import (extend_schema, inline_serializer,
-                                   OpenApiParameter)
+                                   OpenApiParameter, OpenApiResponse)
 import requests
 from rest_framework import filters, serializers, status, viewsets
 from rest_framework.response import Response
@@ -15,6 +15,7 @@ from .serializers import (CitySerializer, TicketSerializer,
                           TicketResponseSerializer)
 from .utils import add_arrival_time, add_url, get_calendar_days
 from .validators import params_validation
+from tickets.models import City
 
 
 TOKEN = os.getenv('TOKEN')
