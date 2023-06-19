@@ -9,6 +9,8 @@ on:
 jobs:
    tests:
      runs-on: ubuntu-latest
+     permissions:
+       contents: read
      steps:
        - uses: action/checkout@v3
        - name: Set up Python
