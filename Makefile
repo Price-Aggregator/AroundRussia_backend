@@ -1,4 +1,4 @@
 .PHONY: lint
 lint:
-    flake8
+    flake8 .
     isort -qc .
