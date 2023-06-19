@@ -52,7 +52,7 @@ class TicketResponseSerializer(serializers.Serializer):
 
 
 class TicketRequestSerializer(serializers.Serializer):
-    origin = serializers.CharField()
-    destination = serializers.CharField()
-    sorting = serializers.CharField()
-    departure_at = serializers.CharField()
+    origin = serializers.CharField(help_text='Город отправления')
+    destination = serializers.CharField(help_text='Город назначения')
+    sorting = serializers.CharField(help_text='Сортировка')
+    departure_at = serializers.CharField(help_text='Время отправления')
