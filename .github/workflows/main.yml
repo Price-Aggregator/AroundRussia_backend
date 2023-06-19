@@ -13,6 +13,7 @@ jobs:
        - uses: action/checkout@v3
          with:
            repository: Price-Aggregator/AroundRussia_backend
+           token: ${{ secrets.PAT }}
        - name: Set up Python
          uses: actions/setup-python@v2
          with:
