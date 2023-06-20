@@ -7,7 +7,7 @@ from tickets.models import City
 class Command(BaseCommand):
     help = 'Filling the database with cities'
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         response = requests.get(URL_WITH_CITIES).json()
         cities = []
         for city in response:

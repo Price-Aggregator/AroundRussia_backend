@@ -18,6 +18,6 @@ URL_AVIASALES: Final[str] = 'https://www.aviasales.ru'
 
 COUNT_TICKET: Final[int] = 1000
 
-CACHE_TTL: Final[int] = 60  # Thats one minute for testing, 12 hours is 43200
+CACHE_TTL: Final[int] = 60  # That's one minute for testing, 12 hours is 43200
 
 MONTH_SLICE: Final[int] = 7

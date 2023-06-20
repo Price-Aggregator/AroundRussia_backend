@@ -11,6 +11,7 @@ class City(models.Model):
     name = models.CharField(
         'Наименование города',
         max_length=100,
+        db_index=True,
         help_text='Укажите наименование города'
     )
     latitude = models.FloatField(
