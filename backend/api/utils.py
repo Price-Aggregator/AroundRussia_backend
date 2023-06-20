@@ -1,5 +1,6 @@
 import datetime as dt
 import os
+import re
 
 from django.core.cache import cache
 from django.utils import timezone
@@ -69,21 +70,26 @@ def get_calendar_days(request):
     return current_month
 
 
-def add_arrival_time(obj):
-    tickets = obj['data']
-    for ticket in tickets:
-        departure_time = dt.datetime.fromisoformat(ticket['departure_at'])
-        way = dt.timedelta(minutes=ticket['duration_to'])
-        arrival_time = departure_time + way
-        ticket['arrival_time'] = arrival_time
-    return obj
+def lazy_cycling(obj):
+    for ticket in obj['data']:
+        add_arrival_time(ticket)
+        add_url(ticket)
+        add_id(ticket)
 
 
-def add_url(obj):
-    tickets = obj['data']
-    for ticket in tickets:
-        ticket['link'] = URL_AVIASALES + ticket['link']
-    return obj
+def add_arrival_time(ticket):
+    departure_time = dt.datetime.fromisoformat(ticket['departure_at'])
+    way = dt.timedelta(minutes=ticket['duration_to'])
+    arrival_time = departure_time + way
+    ticket['arrival_time'] = arrival_time
+
+
+def add_url(ticket):
+    ticket['link'] = URL_AVIASALES + ticket['link']
+
+
+def add_id(ticket):
+    ticket['id'] = re.search('uuid=(.*?)(?=&)', ticket['link']).group(1)
 
 
 def get_from_cache(url):
