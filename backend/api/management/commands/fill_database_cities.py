@@ -1,4 +1,4 @@
-from requests import get
+import requests
 from django.core.management import BaseCommand
 from api.constants import URL_WITH_CITIES
 from tickets.models import City
@@ -8,7 +8,7 @@ class Command(BaseCommand):
     help = 'Filling the database with cities'
 
     def handle(self, *args, **kwargs):
-        response = get(URL_WITH_CITIES).json()
+        response = requests.get(URL_WITH_CITIES).json()
         cities = []
         for city in response:
             if city['country_code'] == 'RU' and city.get('name') is not None:
