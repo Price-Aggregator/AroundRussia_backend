@@ -45,7 +45,9 @@ jobs:
          with:
            context: backend/
            push: true
-           tags: ${{ secrets.DOCKER_USERNAME }}/around-russia-backend:${{ github.sha }}
+           tags: 
+             - ${{ secrets.DOCKER_USERNAME }}/around-russia-backend:${{ github.sha }}
+             - ${{ secrets.DOCKER_USERNAME }}/around-russia-backend:latest
    deploy:
      runs-on: ubuntu-latest
      needs: build_and_push_to_docker_hub
@@ -73,5 +75,6 @@ jobs:
              echo DJANGO_KEY=${{ secrets.DJANGO_KEY }} >> .env
              echo DEBUG=${{ secrets.DEBUG }} >> .env
              echo HOST=${{ secrets.HOST }} >> .env
+             echo TOKEN=${{ secrets.AVIA_TOKEN }} >> .env
              sudo docker-compose up -d
              sudo docker image prune
