@@ -45,9 +45,9 @@ jobs:
          with:
            context: backend/
            push: true
-           tags: 
-             - ${{ secrets.DOCKER_USERNAME }}/around-russia-backend:${{ github.sha }}
-             - ${{ secrets.DOCKER_USERNAME }}/around-russia-backend:latest
+           tags: |
+             ${{ secrets.DOCKER_USERNAME }}/around-russia-backend:${{ github.sha }}
+             ${{ secrets.DOCKER_USERNAME }}/around-russia-backend:latest
    deploy:
      runs-on: ubuntu-latest
      needs: build_and_push_to_docker_hub
@@ -63,7 +63,7 @@ jobs:
              cd aroundrussia-app
              sudo docker-compose down --remove-orphans
              sudo docker-compose rm -f backend frontend
-             sudo docker-compose pull backend frontend
+             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/around-russia-backend
              rm -f .env
              touch .env
              echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
