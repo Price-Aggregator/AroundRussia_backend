@@ -69,11 +69,11 @@ class CalendarView(APIView):
             if not City.objects.filter(code=code).exists():
                 return Response(
                     {
-                        'InvalidIATA-code': f'Incorrect IATA-code for {code}',
+                        'InvalidIATA-code': f'Некорректный IATA-код {code}',
                     }, status=status.HTTP_404_NOT_FOUND
                 )
         response = get_calendar_days(request)
-        if 'InvalidDate' or 'error' in response:
+        if 'InvalidDate' in response or 'error' in response:
             stat = status.HTTP_400_BAD_REQUEST
         else:
             stat = status.HTTP_200_OK
