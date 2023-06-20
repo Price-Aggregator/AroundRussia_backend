@@ -17,7 +17,6 @@ from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 from tickets.models import City
 
-
 TOKEN = os.getenv('TOKEN')
 
 
