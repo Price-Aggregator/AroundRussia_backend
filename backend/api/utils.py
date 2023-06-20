@@ -75,6 +75,7 @@ def lazy_cycling(obj):
         add_arrival_time(ticket)
         add_url(ticket)
         add_id(ticket)
+    return obj
 
 
 def add_arrival_time(ticket):
