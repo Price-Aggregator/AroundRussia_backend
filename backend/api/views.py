@@ -1,21 +1,19 @@
 import os
-from http import HTTPStatus
 
-from drf_spectacular.utils import (extend_schema, inline_serializer,
-                                   OpenApiParameter, OpenApiResponse)
 import requests
+from drf_spectacular.utils import (OpenApiParameter, OpenApiResponse,
+                                   extend_schema, inline_serializer)
 from rest_framework import filters, serializers, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from tickets.models import City
 from .constants import COUNT_TICKET, URL_SEARCH
 from .filter import sort_by_time, sort_transfer
-from .serializers import (CitySerializer, TicketSerializer,
-                          TicketRequestSerializer,
-                          TicketResponseSerializer)
-from .utils import get_calendar_days, lazy_cycling
+from .serializers import (CitySerializer, TicketRequestSerializer,
+                          TicketResponseSerializer, TicketSerializer)
+from .utils import add_arrival_time, add_url, get_calendar_days
 from .validators import params_validation
-from tickets.models import City
 
 TOKEN = os.getenv('TOKEN')
 
@@ -173,4 +171,4 @@ class SearchTicketView(APIView):
             response_data = lazy_cycling(response_data)
             my_serializer = TicketSerializer(data=response_data, many=True)
             return Response(my_serializer.initial_data)
-        return Response(HTTPStatus.BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
