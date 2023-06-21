@@ -9,12 +9,13 @@ SECRET_KEY = os.getenv('DJANGO_KEY', get_random_secret_key())
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['80.87.107.207',
-                 '127.0.0.1',
-                 'localhost',
-                 'backend',
-                 'aroundrussia.acceleratorpracticum.ru'
-                 ]
+ALLOWED_HOSTS = [
+    '80.87.107.207',
+    '127.0.0.1',
+    'localhost',
+    'backend',
+    'aroundrussia.acceleratorpracticum.ru'
+]
 
 
 INSTALLED_APPS = [
