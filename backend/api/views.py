@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .constants import COUNT_TICKET, URL_SEARCH
+from .exceptions import EmptyResponse, InvalidDate, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .serializers import (CitySerializer, TicketSerializer,
                           TicketRequestSerializer,
@@ -72,12 +73,28 @@ class CalendarView(APIView):
                         'InvalidIATA-code': f'Некорректный IATA-код {code}',
                     }, status=status.HTTP_404_NOT_FOUND
                 )
-        response = get_calendar_days(request)
-        if 'InvalidDate' in response or 'error' in response:
-            stat = status.HTTP_400_BAD_REQUEST
-        else:
-            stat = status.HTTP_200_OK
-        return Response(response, status=stat)
+        try:
+            response = get_calendar_days(request)
+            if 'InvalidDate' in response:
+                stat = status.HTTP_400_BAD_REQUEST
+            else:
+                stat = status.HTTP_200_OK
+            return Response(response, status=stat)
+        except ServiceError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except InvalidDate as e:
+            return Response(
+                {'InvalidDate': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except EmptyResponse as e:
+            return Response(
+                {'EmptyResponse': str(e)},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class SearchTicketView(APIView):
