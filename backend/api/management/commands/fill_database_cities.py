@@ -1,3 +1,5 @@
+from typing import Any
+
 import requests
 from django.core.management import BaseCommand
 from api.constants import URL_WITH_CITIES
@@ -7,7 +9,7 @@ from tickets.models import City
 class Command(BaseCommand):
     help = 'Filling the database with cities'
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         response = requests.get(URL_WITH_CITIES).json()
         cities = []
         for city in response:
