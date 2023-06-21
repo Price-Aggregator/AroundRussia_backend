@@ -1,12 +1,15 @@
 import datetime as dt
 import os
 import re
+from calendar import monthrange
 
+import requests
 from django.core.cache import cache
 from django.utils import timezone
-import requests
 
-from .constants import CACHE_TTL, MONTH_SLICE, URL_CALENDAR, URL_AVIASALES
+from .constants import (CACHE_TTL, MONTH_SLICE, PERIOD, PERIOD_SLICE,
+                        URL_AVIASALES, URL_CALENDAR, WEEK)
+from .exceptions import EmptyResponse, InvalidDate, ServiceError
 
 
 def get_calendar_prices(origin, destination, date):
@@ -23,9 +26,12 @@ def get_calendar_prices(origin, destination, date):
         request_url,
         headers=headers
     )
-    if 'error' in response.json():
-        return {'error': response.json()['error']}
-    data = response.json()['data']
+    output = response.json()
+    if response is None or output['data'] == {}:
+        raise EmptyResponse('Данные не получены')
+    if 'error' in output:
+        raise ServiceError(output['error'])
+    data = output['data']
     price = []
     for result in data:
         price.append({
@@ -38,36 +44,42 @@ def get_calendar_prices(origin, destination, date):
 
 def get_calendar_days(request):
     date = request.GET.get('departure_at')
-    origin = request.GET.get('origin')
-    destination = request.GET.get('destination')
-    period = timezone.timedelta(days=15)
     date_now = timezone.datetime.now().date()
     date_req = timezone.datetime.strptime(date, '%Y-%m-%d').date()
+    if date_req < date_now:
+        raise InvalidDate('Дата не может быть раньше текущего числа')
+    data = calendar_dry(request, date_now, date_req)
+    return data
+
+
+def calendar_dry(request, date_now, date_req):
+    date = request.GET.get('departure_at')
+    origin = request.GET.get('origin')
+    destination = request.GET.get('destination')
+    period = timezone.timedelta(days=PERIOD)
     date_future = date_req + period
     date_previous = date_req - period
-    if date_req < date_now:
-        return {'InvalidDate': 'Дата не может быть раньше текущего числа'}
     current_month = get_calendar_prices(origin, destination, date)
-    if 'error' in current_month:
-        return current_month
     diff = date_req - date_now
+    month_len = monthrange(date_req.year, date_req.month)[1]
     if date_req.month < date_future.month:
         date = str(date_future)
         next_month = get_calendar_prices(origin, destination, date)
         data = current_month + next_month
-        if diff.days <= 15:
-            return data[0: diff.days + 15]
-        day = len(current_month) + date_req.day - 46
-        return data[day:day + 30]
-    elif date_previous.month < date_req.month:
+        if diff.days <= WEEK:
+            return data[0:PERIOD]
+        day = len(current_month) + date_req.day - (month_len + PERIOD_SLICE)
+        return data[day:day + PERIOD]
+    if date_previous.month < date_req.month:
         date = str(date_previous)
         previous_month = get_calendar_prices(origin, destination, date)
         data = previous_month + current_month
-        if diff.days <= 15:
-            return data[0: diff.days + 15]
-        day = len(previous_month) - (15 - date_req.day)
-        return data[day:day + 30]
-    return current_month
+        if diff.days <= WEEK:
+            return data[0:PERIOD]
+        day = len(previous_month) - (PERIOD_SLICE - date_req.day)
+        return data[day:day + PERIOD]
+    day = date_req.day - PERIOD_SLICE
+    return current_month[day: day + PERIOD]
 
 
 def lazy_cycling(obj):
