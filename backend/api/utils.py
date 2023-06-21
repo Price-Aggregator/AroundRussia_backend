@@ -48,8 +48,7 @@ def get_calendar_days(request):
     date_req = timezone.datetime.strptime(date, '%Y-%m-%d').date()
     if date_req < date_now:
         raise InvalidDate('Дата не может быть раньше текущего числа')
-    data = calendar_dry(request, date_now, date_req)
-    return data
+    return calendar_dry(request, date_now, date_req)
 
 
 def calendar_dry(request, date_now, date_req):
