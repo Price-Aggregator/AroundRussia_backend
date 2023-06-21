@@ -12,7 +12,9 @@ DEBUG = True
 ALLOWED_HOSTS = ['80.87.107.207',
                  '127.0.0.1',
                  'localhost',
-                 'backend']
+                 'backend',
+                 'aroundrussia.acceleratorpracticum.ru'
+                 ]
 
 
 INSTALLED_APPS = [
