@@ -64,6 +64,7 @@ jobs:
              sudo docker-compose down --remove-orphans
              sudo docker-compose rm -f backend frontend
              sudo docker pull ${{ secrets.DOCKER_USERNAME }}/around-russia-backend
+             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/around-russia-frontend
              rm -f .env
              touch .env
              echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
