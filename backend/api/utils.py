@@ -1,14 +1,14 @@
-from calendar import monthrange
 import datetime as dt
 import os
 import re
+from calendar import monthrange
 
+import requests
 from django.core.cache import cache
 from django.utils import timezone
-import requests
 
 from .constants import (CACHE_TTL, MONTH_SLICE, PERIOD, PERIOD_SLICE,
-                        URL_CALENDAR, URL_AVIASALES, WEEK)
+                        URL_AVIASALES, URL_CALENDAR, WEEK)
 from .exceptions import EmptyResponse, InvalidDate, ServiceError
 
 
@@ -26,11 +26,12 @@ def get_calendar_prices(origin, destination, date):
         request_url,
         headers=headers
     )
-    if response is None or response.json()['data'] == {}:
+    output = response.json()
+    if response is None or output['data'] == {}:
         raise EmptyResponse('Данные не получены')
-    if 'error' in response.json():
-        raise ServiceError(response.json()['error'])
-    data = response.json()['data']
+    if 'error' in output:
+        raise ServiceError(output['error'])
+    data = output['data']
     price = []
     for result in data:
         price.append({
@@ -43,15 +44,21 @@ def get_calendar_prices(origin, destination, date):
 
 def get_calendar_days(request):
     date = request.GET.get('departure_at')
+    date_now = timezone.datetime.now().date()
+    date_req = timezone.datetime.strptime(date, '%Y-%m-%d').date()
+    if date_req < date_now:
+        raise InvalidDate('Дата не может быть раньше текущего числа')
+    data = calendar_dry(request, date_now, date_req)
+    return data
+
+
+def calendar_dry(request, date_now, date_req):
+    date = request.GET.get('departure_at')
     origin = request.GET.get('origin')
     destination = request.GET.get('destination')
     period = timezone.timedelta(days=PERIOD)
-    date_now = timezone.datetime.now().date()
-    date_req = timezone.datetime.strptime(date, '%Y-%m-%d').date()
     date_future = date_req + period
     date_previous = date_req - period
-    if date_req < date_now:
-        raise InvalidDate('Дата не может быть раньше текущего числа')
     current_month = get_calendar_prices(origin, destination, date)
     diff = date_req - date_now
     month_len = monthrange(date_req.year, date_req.month)[1]
@@ -63,7 +70,7 @@ def get_calendar_days(request):
             return data[0:PERIOD]
         day = len(current_month) + date_req.day - (month_len + PERIOD_SLICE)
         return data[day:day + PERIOD]
-    elif date_previous.month < date_req.month:
+    if date_previous.month < date_req.month:
         date = str(date_previous)
         previous_month = get_calendar_prices(origin, destination, date)
         data = previous_month + current_month

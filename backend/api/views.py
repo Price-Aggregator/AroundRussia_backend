@@ -75,11 +75,7 @@ class CalendarView(APIView):
                 )
         try:
             response = get_calendar_days(request)
-            if 'InvalidDate' in response:
-                stat = status.HTTP_400_BAD_REQUEST
-            else:
-                stat = status.HTTP_200_OK
-            return Response(response, status=stat)
+            return Response(response, status=status.HTTP_200_OK)
         except ServiceError as e:
             return Response(
                 {'error': str(e)},
