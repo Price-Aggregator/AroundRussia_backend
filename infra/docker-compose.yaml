@@ -24,6 +24,17 @@ services:
     env_file:
       - ./test-env
 
+  migrations:
+    build:
+      context: ../backend/
+    command: sh -c "python manage.py migrate && python manage.py collectstatic --no-input"
+    volumes:
+      - static_value:/app/static/
+      - media_value:/app/media/
+    depends_on:
+    - db
+    - backend
+
   nginx:
     image: nginx:1.21.3
     ports:
