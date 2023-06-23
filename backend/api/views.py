@@ -8,6 +8,7 @@ from rest_framework import filters, serializers, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from . import openapi
 from .constants import COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponse, InvalidDate, ServiceError
 from .filter import sort_by_time, sort_transfer
@@ -29,41 +30,11 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CalendarView(APIView):
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                'origin',
-                description='IATA-код города отправления'
-            ),
-            OpenApiParameter(
-                'destination',
-                description='IATA-код города назначения'
-            ),
-            OpenApiParameter(
-                'departure_at',
-                description="""Дата отправления из города отправления
-                                 (в формате YYYY-MM-DD)"""
-            )
-        ],
-        responses={
-            200: inline_serializer(
-                'Получение дат цен',
-                fields={
-                    'date': serializers.CharField(),
-                    'price': serializers.IntegerField()
-                }
-            ),
-            400: inline_serializer(
-                'Bad request',
-                fields={
-                    'ERROR': serializers.CharField()
-                }
-            )
-        }
-    )
+
+    @openapi.calendar_get
     def get(self, request):
         """
-        View для календаря цен.
+        Функция для календаря цен.
         """
         cities = [request.GET.get('origin'), request.GET.get('destination')]
         for code in cities:
