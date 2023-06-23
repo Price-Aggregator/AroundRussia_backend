@@ -1,7 +1,6 @@
-from drf_spectacular.utils import (extend_schema, inline_serializer,
-                                   OpenApiParameter)
+from drf_spectacular.utils import (OpenApiParameter, extend_schema,
+                                   inline_serializer)
 from rest_framework import serializers
-
 
 calendar_get = extend_schema(
     parameters=[
