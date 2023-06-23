@@ -3,7 +3,8 @@ from typing import Final
 URL_WITH_CITIES: Final[str] = (
     'https://api.travelpayouts.com/data/ru/cities.json?_gl=1'
     '*100i7ih*_ga*MTUzMTY3NDIzNi4xNjg1ODI4ODQx*_ga_1WLL0NEBEH'
-    '*MTY4NjA2MDAyMi45LjAuMTY4NjA2MDAyMi42MC4wLjA.')
+    '*MTY4NjA2MDAyMi45LjAuMTY4NjA2MDAyMi42MC4wLjA.'
+)
 """Ссылка содержащая список городов с их координатами и IATA кодами."""
 
 URL_CALENDAR: Final[str] = (
@@ -27,13 +28,13 @@ CACHE_TTL: Final[int] = 60
    Для тестирования указана 1 минута. 12 часов = 43200."""
 
 MONTH_SLICE: Final[int] = 7
-"""Индекс для среза строки даты, возвращает подстроку в формате YYYY-MM"""
+"""Индекс для среза строки даты, возвращает подстроку в формате YYYY-MM."""
 
 WEEK: Final[int] = 7
 """Количество дней в неделе."""
 
 PERIOD: Final[int] = 15
-"""Количество дней за которые будут возвращаться цены"""
+"""Количество дней за которые будут возвращаться цены."""
 
 PERIOD_SLICE: Final[int] = 8
-"""Количество дней до/после запрашиваемой даты включительно"""
+"""Количество дней до/после запрашиваемой даты включительно."""
