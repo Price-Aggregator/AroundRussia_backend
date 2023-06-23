@@ -13,6 +13,7 @@ from .exceptions import EmptyResponse, InvalidDate, ServiceError
 
 
 def get_calendar_prices(origin, destination, date):
+    """Утилита для получения цен для календаря."""
     headers = {'X-Access-Token': os.environ.get('TOKEN')}
     request_url = (f'{URL_CALENDAR}?'
                    f'origin={origin}&'
@@ -43,6 +44,7 @@ def get_calendar_prices(origin, destination, date):
 
 
 def get_calendar_days(request):
+    """Утилита для получения дней для календаря."""
     date = request.GET.get('departure_at')
     date_now = timezone.datetime.now().date()
     date_req = timezone.datetime.strptime(date, '%Y-%m-%d').date()
@@ -52,6 +54,7 @@ def get_calendar_days(request):
 
 
 def calendar_dry(request, date_now, date_req):
+    """Утилита для обработки месяцев в календаре."""
     date = request.GET.get('departure_at')
     origin = request.GET.get('origin')
     destination = request.GET.get('destination')
@@ -82,6 +85,7 @@ def calendar_dry(request, date_now, date_req):
 
 
 def lazy_cycling(obj):
+    """Утилита ленивого цикла для получения билетов."""
     for ticket in obj['data']:
         add_arrival_time(ticket)
         add_url(ticket)
@@ -90,6 +94,7 @@ def lazy_cycling(obj):
 
 
 def add_arrival_time(ticket):
+    """Утилита для добавления времени прибытия."""
     departure_time = dt.datetime.fromisoformat(ticket['departure_at'])
     way = dt.timedelta(minutes=ticket['duration_to'])
     arrival_time = departure_time + way
@@ -97,10 +102,12 @@ def add_arrival_time(ticket):
 
 
 def add_url(ticket):
+    """Утилита для добавления ссылки к билету."""
     ticket['link'] = URL_AVIASALES + ticket['link']
 
 
 def add_id(ticket):
+    """Утилита длоя добавления id к билету."""
     ticket['id'] = re.search('uuid=(.*?)(?=&)', ticket['link']).group(1)
 
 

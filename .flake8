@@ -7,14 +7,7 @@ extend-exclude =
 ignore =
     # line break before binary operator
     W503,
-    # redefinition of unused name from line n
-    F811,
-    # isort found an import in the wrong position
-    I001,
-    # unnecessary elif after return statement
-    R505,
-    # isort found an unexpected missing import
-    I005
+
 per-file-ignores =
     # line too long (82 > 79 characters)
     */settings.py:E501

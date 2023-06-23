@@ -1,10 +1,7 @@
 import os
 from http import HTTPStatus
-
-from drf_spectacular.utils import (extend_schema, inline_serializer,
-                                   OpenApiParameter, OpenApiResponse)
 import requests
-from rest_framework import filters, serializers, status, viewsets
+from rest_framework import filters, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,9 +9,7 @@ from . import openapi
 from .constants import COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponse, InvalidDate, ServiceError
 from .filter import sort_by_time, sort_transfer
-from .serializers import (CitySerializer, TicketSerializer,
-                          TicketRequestSerializer,
-                          TicketResponseSerializer)
+from .serializers import (CitySerializer, TicketSerializer)
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 from tickets.models import City
@@ -23,6 +18,7 @@ TOKEN = os.getenv('TOKEN')
 
 
 class CityViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet для получения городов."""
     serializer_class = CitySerializer
     queryset = City.objects.all()
     filter_backends = (filters.SearchFilter,)
@@ -65,80 +61,7 @@ class CalendarView(APIView):
 
 
 class SearchTicketView(APIView):
-    @extend_schema(description=(
-        'Функция для поиска билетов. '
-        ' Запросы необходимо передавать через RequestBody'),
-        parameters=[
-            OpenApiParameter(
-                'origin',
-                description=(
-                    '(Опционально если указан destination)'
-                    'IATA-код города отправления')
-            ),
-            OpenApiParameter(
-                'destination',
-                description=(
-                    '(Опционально если указан origin)'
-                    'IATA-код города назначения')
-            ),
-            OpenApiParameter(
-                'departure_at',
-                description=(
-                    '(Опционально) Дата отправления из города отправления'
-                    '(в формате YYYY-MM-DD)')
-            ),
-            OpenApiParameter(
-                'return_at',
-                description=(
-                    '(Опционально) Дата возвращения'
-                    '(в формате YYYY-MM-DD)')
-            ),
-            OpenApiParameter(
-                'one_way',
-                description=(
-                    '(Опционально) Билет в один конец.'
-                    'true или false, true по умолчанию.')
-            ),
-            OpenApiParameter(
-                'direct',
-                description=(
-                    '(Опционально) Только рейсы без пересадок.'
-                    'true или false. false по умолчанию.')
-            ),
-            OpenApiParameter(
-                'limit',
-                description=(
-                    '(Опционально) Количество записей в ответе.'
-                    'max=1000. 30 по умолчанию')
-            ),
-            OpenApiParameter(
-                'page',
-                description='(Опционально) Номер страницы.'
-            ),
-            OpenApiParameter(
-                'sorting',
-                description=(
-                    'Тип сортировки.'
-                    'Допустимые значения: time, price, route.')
-            )
-    ],
-        request=TicketRequestSerializer(),
-        responses={
-            200: OpenApiResponse(response=TicketResponseSerializer()),
-            400: inline_serializer(
-                'Bad_Request',
-                fields={
-                    'InvalidData': serializers.CharField()
-                }
-            ),
-            404: inline_serializer(
-                'Not_Found',
-                fields={
-                    'Invalid IATA-code': serializers.CharField()
-                }
-            )
-    }
-    )
+    @openapi.search_ticket_post
     def post(self, request):
         """Функция для поиска билетов."""
 
