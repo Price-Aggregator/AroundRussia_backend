@@ -21,9 +21,12 @@ COUNT_TICKET: Final[int] = 1000
 CACHE_TTL: Final[int] = 60  # That's one minute for testing, 12 hours is 43200
 
 MONTH_SLICE: Final[int] = 7
+"""Индекс для среза строки даты, возвращает подстроку в формате YYYY-MM"""
 
 WEEK: Final[int] = 7
 
 PERIOD: Final[int] = 15
+"""Количество дней за которые будут возвращаться цены"""
 
 PERIOD_SLICE: Final[int] = 8
+"""Количество дней до/после запрашиваемой даты включительно"""
