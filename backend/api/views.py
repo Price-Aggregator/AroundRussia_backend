@@ -1,23 +1,22 @@
 import os
 from http import HTTPStatus
 
-from drf_spectacular.utils import (extend_schema, inline_serializer,
-                                   OpenApiParameter, OpenApiResponse)
 import requests
+from drf_spectacular.utils import (OpenApiParameter, OpenApiResponse,
+                                   extend_schema, inline_serializer)
 from rest_framework import filters, serializers, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from tickets.models import City
 
 from . import openapi
 from .constants import COUNT_TICKET, URL_SEARCH
-from .exceptions import EmptyResponse, InvalidDate, ServiceError
+from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
-from .serializers import (CitySerializer, TicketSerializer,
-                          TicketRequestSerializer,
-                          TicketResponseSerializer)
+from .serializers import (CitySerializer, TicketRequestSerializer,
+                          TicketResponseSerializer, TicketSerializer)
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
-from tickets.models import City
 
 TOKEN = os.getenv('TOKEN')
 
@@ -52,12 +51,12 @@ class CalendarView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        except InvalidDate as e:
+        except InvalidDateError as e:
             return Response(
                 {'InvalidDate': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        except EmptyResponse as e:
+        except EmptyResponseError as e:
             return Response(
                 {'EmptyResponse': str(e)},
                 status=status.HTTP_404_NOT_FOUND
