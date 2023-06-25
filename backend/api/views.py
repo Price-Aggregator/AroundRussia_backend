@@ -2,9 +2,7 @@ import os
 from http import HTTPStatus
 
 import requests
-from drf_spectacular.utils import (OpenApiParameter, OpenApiResponse,
-                                   extend_schema, inline_serializer)
-from rest_framework import filters, serializers, status, viewsets
+from rest_framework import filters, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,8 +10,7 @@ from . import openapi
 from .constants import COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
-from .serializers import (CitySerializer, TicketRequestSerializer,
-                          TicketResponseSerializer, TicketSerializer)
+from .serializers import CitySerializer, TicketSerializer
 from tickets.models import City  # noqa: I001
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
