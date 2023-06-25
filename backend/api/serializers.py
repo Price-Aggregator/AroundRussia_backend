@@ -1,5 +1,22 @@
 from rest_framework import serializers
 from tickets.models import City
+from .constants import BLOCK_CITY
+
+
+class AirportField(serializers.Field):
+    """Поле для серилиализатоа.
+       Проверяет что все города сейчас доступны"""
+
+    def to_representation(self, value):
+        return value
+
+    def to_internal_value(self, data):
+        try:
+            data not in BLOCK_CITY
+        except ValueError:
+            raise serializers.ValidationError(
+                'Извините, в данный момент аэропорт закрыт')
+        return data
 
 
 class CitySerializer(serializers.ModelSerializer):
@@ -17,9 +34,9 @@ class TicketSerializer(serializers.Serializer):
         max_length=10, help_text='Город отправления')
     destination = serializers.CharField(
         max_length=10, help_text='Город назначения')
-    origin_airport = serializers.CharField(
+    origin_airport = AirportField(
         max_length=10, help_text='Аэропорт отправления')
-    destination_airport = serializers.CharField(
+    destination_airport = AirportField(
         max_length=10, help_text='Аэропорт назначения')
     price = serializers.IntegerField(help_text='Цена')
     airline = serializers.CharField(max_length=10, help_text='Авиакомпания')
