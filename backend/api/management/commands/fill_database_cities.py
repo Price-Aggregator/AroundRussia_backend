@@ -1,8 +1,8 @@
 from typing import Any
 
 import requests
-from django.core.management import BaseCommand
 from api.constants import URL_WITH_CITIES
+from django.core.management import BaseCommand
 from tickets.models import City
 
 

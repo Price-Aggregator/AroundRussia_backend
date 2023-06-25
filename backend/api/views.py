@@ -1,10 +1,11 @@
 import os
 from http import HTTPStatus
-import requests
 
+import requests
 from rest_framework import filters, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from tickets.models import City
 
 from . import openapi
 from .constants import COUNT_TICKET, URL_SEARCH
@@ -13,7 +14,6 @@ from .filter import sort_by_time, sort_transfer
 from .serializers import CitySerializer, TicketSerializer
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
-from tickets.models import City
 
 TOKEN = os.getenv('TOKEN')
 

@@ -1,6 +1,7 @@
-from drf_spectacular.utils import (OpenApiParameter, extend_schema,
-                                   inline_serializer, OpenApiResponse)
+from drf_spectacular.utils import (OpenApiParameter, OpenApiResponse,
+                                   extend_schema, inline_serializer)
 from rest_framework import serializers
+
 from .serializers import TicketRequestSerializer, TicketResponseSerializer
 
 calendar_get = extend_schema(
