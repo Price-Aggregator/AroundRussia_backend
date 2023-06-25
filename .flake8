@@ -6,7 +6,7 @@ extend-exclude =
     env/
 ignore =
     # line break before binary operator
-    W503
+    W503,
 per-file-ignores =
     # line too long (82 > 79 characters)
     */settings.py:E501
