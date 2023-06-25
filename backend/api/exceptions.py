@@ -3,11 +3,11 @@ class ServiceError(Exception):
     pass
 
 
-class InvalidDate(Exception):
+class InvalidDateError(Exception):
     """В запросе указана некорректная дата."""
     pass
 
 
-class EmptyResponse(Exception):
+class EmptyResponseError(Exception):
     """Сервер вернул пустой ответ."""
     pass

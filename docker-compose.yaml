@@ -13,7 +13,7 @@ services:
 
   backend:
     build:
-      context: ../backend/
+      context: ./backend/
     restart: always
     volumes:
       - static_value:/app/static/
@@ -26,7 +26,7 @@ services:
 
   migrations:
     build:
-      context: ../backend/
+      context: ./backend/
     command: sh -c "python manage.py migrate && python manage.py collectstatic --no-input"
     volumes:
       - static_value:/app/static/

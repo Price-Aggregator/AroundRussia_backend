@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from .constants import (CACHE_TTL, MONTH_SLICE, PERIOD, PERIOD_SLICE,
                         URL_AVIASALES, URL_CALENDAR, WEEK)
-from .exceptions import EmptyResponse, InvalidDate, ServiceError
+from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 
 
 def get_calendar_prices(origin, destination, date):
@@ -29,7 +29,7 @@ def get_calendar_prices(origin, destination, date):
     )
     output = response.json()
     if response is None or output['data'] == {}:
-        raise EmptyResponse('Данные не получены')
+        raise EmptyResponseError('Данные не получены')
     if 'error' in output:
         raise ServiceError(output['error'])
     data = output['data']
@@ -49,7 +49,7 @@ def get_calendar_days(request):
     date_now = timezone.datetime.now().date()
     date_req = timezone.datetime.strptime(date, '%Y-%m-%d').date()
     if date_req < date_now:
-        raise InvalidDate('Дата не может быть раньше текущего числа')
+        raise InvalidDateError('Дата не может быть раньше текущего числа')
     return calendar_dry(request, date_now, date_req)
 
 

@@ -1,4 +1,0 @@
-flake8==3.9.2
-flake8-broken-line
-flake8-return
-flake8-isort
