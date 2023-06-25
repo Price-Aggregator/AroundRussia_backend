@@ -38,7 +38,7 @@ calendar_get = extend_schema(
 
 search_ticket_post = extend_schema(description=(
     'Функция для поиска билетов. '
-    ' Запросы необходимо передавать через RequestBody'),
+    'Запросы необходимо передавать через RequestBody'),
     parameters=[
         OpenApiParameter(
             'origin',
