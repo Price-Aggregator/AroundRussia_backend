@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from . import openapi
-from .constants import COUNT_TICKET, URL_SEARCH
+from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .serializers import CitySerializer, TicketSerializer
@@ -41,12 +41,18 @@ class CalendarView(APIView):
                         'InvalidIATA-code': f'Некорректный IATA-код {code}',
                     }, status=status.HTTP_404_NOT_FOUND
                 )
+            if code in BLOCK_CITY:
+                return Response(
+                    {
+                        'Error': 'Извините, в данный момент аэропорт закрыт',
+                    }, status=status.HTTP_400_BAD_REQUEST
+                )
         try:
             response = get_calendar_days(request)
             return Response(response, status=status.HTTP_200_OK)
         except ServiceError as e:
             return Response(
-                {'error': str(e)},
+                {'Error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
         except InvalidDateError as e:
