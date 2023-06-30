@@ -12,7 +12,7 @@ from .constants import (CACHE_TTL, MONTH_SLICE, PERIOD, PERIOD_MAX,
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 
 
-def get_calendar_prices(origin, destination, date, return_at):
+def get_calendar_prices(origin, destination, date, return_at=''):
     """Утилита для получения цен для календаря."""
     headers = {'X-Access-Token': os.environ.get('TOKEN')}
     request_url = (f'{URL_CALENDAR}?'
@@ -66,10 +66,10 @@ def get_calendar_days(request):
                 'между датой отправления и датой возвращения'
             )
         return calendar_dry(request, date_now, date_req, return_at)
-    return calendar_dry(request, date_now, date_req, return_at)
+    return calendar_dry(request, date_now, date_req)
 
 
-def calendar_dry(request, date_now, date_req, return_at):
+def calendar_dry(request, date_now, date_req, return_at=''):
     """Утилита для обработки месяцев в календаре."""
     date = request.GET.get('departure_at')
     origin = request.GET.get('origin')
@@ -86,8 +86,7 @@ def calendar_dry(request, date_now, date_req, return_at):
         if return_at:
             next_month = get_calendar_prices(origin, destination, date, date)
         else:
-            next_month = get_calendar_prices(origin, destination,
-                                             date, return_at)
+            next_month = get_calendar_prices(origin, destination, date)
         data = current_month + next_month
         if diff.days <= WEEK:
             return data[0:PERIOD]
@@ -99,8 +98,7 @@ def calendar_dry(request, date_now, date_req, return_at):
             previous_month = get_calendar_prices(origin, destination,
                                                  date, date)
         else:
-            previous_month = get_calendar_prices(origin, destination,
-                                                 date, return_at)
+            previous_month = get_calendar_prices(origin, destination, date)
         data = previous_month + current_month
         if diff.days <= WEEK:
             return data[0:PERIOD]
@@ -123,7 +121,7 @@ def get_current_month(origin, destination, date, return_at):
                 else:
                     data.pop(day)
         return data
-    data = get_calendar_prices(origin, destination, date_month, return_at)
+    data = get_calendar_prices(origin, destination, date_month)
     return data
 
 
