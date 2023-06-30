@@ -16,8 +16,13 @@ calendar_get = extend_schema(
         ),
         OpenApiParameter(
             'departure_at',
-            description="""Дата отправления из города отправления
-                        (в формате YYYY-MM-DD)"""
+            description=('Дата отправления из города отправления'
+                         '(в формате YYYY-MM-DD)')
+        ),
+        OpenApiParameter(
+            'return_at',
+            description=('(Опционально) Дата возвращения'
+                         '(в формате YYYY-MM-DD)')
         )
     ],
     responses={
