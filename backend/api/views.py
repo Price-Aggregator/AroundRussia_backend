@@ -82,7 +82,7 @@ class SearchTicketView(APIView):
                 response_data = sort_by_time(response_data)
             else:
                 response_data = requests.get(URL_SEARCH, params=params,).json()
-            if 'direct' in params and params['direct'] == 'true':
+            if 'direct' in params and params['direct'] == 'false':
                 response_data = sort_transfer(response_data)
             response_data = lazy_cycling(response_data)
             my_serializer = TicketSerializer(data=response_data, many=True)
