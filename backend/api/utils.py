@@ -49,11 +49,10 @@ def get_calendar_days(request):
     date = request.GET.get('departure_at')
     date_now = timezone.datetime.now().date()
     date_req = timezone.datetime.strptime(date, '%Y-%m-%d').date()
-    return_at = ''
+    return_at = request.GET.get('return_at', default='')
     if date_req < date_now:
         raise InvalidDateError('Дата не может быть раньше текущего числа')
-    if 'return_at' in request.GET:
-        return_at = request.GET.get('return_at')
+    if return_at:
         date_return = timezone.datetime.strptime(
             return_at, '%Y-%m-%d').date()
         if date_return < date_req:
