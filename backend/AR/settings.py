@@ -9,8 +9,11 @@ SECRET_KEY = os.getenv('DJANGO_KEY', get_random_secret_key())
 
 DEBUG = os.getenv('DEBUG', True)
 
-ALLOWED_HOSTS = ''
-# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
+hosts_str = os.getenv('ALLOWED_HOSTS')
+if hosts_str:
+    ALLOWED_HOSTS = hosts_str.split(',')
+else:
+    ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -21,11 +24,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework.authtoken',
     'drf_spectacular',
+    'djoser',
 
-    'api',
-    'tickets',
-    'categories'
+    'api.apps.ApiConfig',
+    'tickets.apps.TicketsConfig',
+    'users.apps.UsersConfig',
+    'categories.apps.CategoriesConfig'
 ]
 
 MIDDLEWARE = [
@@ -119,6 +125,9 @@ CACHES = {
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
 }
 
 SPECTACULAR_SETTINGS = {
@@ -129,4 +138,14 @@ SPECTACULAR_SETTINGS = {
         "filter": True,
     },
     "COMPONENT_SPLIT_REQUEST": True
+}
+
+AUTH_USER_MODEL = 'users.User'
+
+DJOSER = {
+    'SERIALIZERS': {
+        'user': 'api.serializers.UserSerializer',
+        'current_user': 'api.serializers.UserSerializer',
+        'user_create': 'api.serializers.UserCreateSerializer'
+    }
 }
