@@ -94,3 +94,11 @@ class UserSerializer(DjUserSerialzer):
         model = User
         fields = ('username', 'email', 'first_name', 'last_name', 'sex',
                   'phone_number', 'birth_date')
+
+
+class ActivitySerializer(serializers.Serializer):
+    pass
+
+
+class TravelSerializer(serializers.Serializer):
+    pass

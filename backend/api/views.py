@@ -10,8 +10,11 @@ from . import openapi
 from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
-from .serializers import CitySerializer, TicketSerializer
+from .permissions import AuthorPermission
+from .serializers import (CitySerializer, TicketSerializer,
+                          TravelSerializer, ActivitySerializer)
 from tickets.models import City  # noqa: I001
+from categories.models import Travel, Activity
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
@@ -88,3 +91,10 @@ class SearchTicketView(APIView):
             my_serializer = TicketSerializer(data=response_data, many=True)
             return Response(my_serializer.initial_data)
         return Response(HTTPStatus.BAD_REQUEST)
+
+
+class TravelViewSet(viewsets.ModelViewSet):
+    """Viewset для путешествия."""
+    queryset = Travel.objects.all()
+    serializer_class = TravelSerializer
+    permission_classes = AuthorPermission
