@@ -17,7 +17,7 @@ class ActivityAdmin(admin.ModelAdmin):
 
 @admin.register(Travel)
 class TravelAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'activity')
+    list_display = ('name', 'author')
     search_fields = ('name', 'author')
     list_filter = ('name', 'author')
     empty_value_display = EMPTY_DISPLAY
@@ -26,6 +26,6 @@ class TravelAdmin(admin.ModelAdmin):
 @admin.register(TravelActivity)
 class TravelActivityAdmin(admin.ModelAdmin):
     list_display = ('travel', 'activity')
-    search_fields = ('travel', 'author')
-    list_filter = ('travel', 'author')
+    search_fields = ('travel', 'activity')
+    list_filter = ('travel', 'activity')
     empty_value_display = EMPTY_DISPLAY

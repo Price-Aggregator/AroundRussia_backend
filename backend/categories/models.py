@@ -51,7 +51,9 @@ class Travel(models.Model):
         verbose_name='Автор',
         help_text='Укажите автора'
     )
-    activity = models.ManyToManyField()
+    activities = models.ManyToManyField(Activity,
+                                        through='TravelActivity',
+                                        verbose_name='Активности')
 
     class Meta:
         """Meta модели Travel."""
