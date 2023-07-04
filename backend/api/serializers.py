@@ -1,5 +1,11 @@
+from django.contrib.auth import get_user_model
+from djoser.serializers import (UserCreateSerializer as DjUserCreateSerializer,
+                                UserSerializer as DjUserSerialzer)
 from rest_framework import serializers
+
 from tickets.models import City
+
+User = get_user_model()
 
 
 class CitySerializer(serializers.ModelSerializer):
@@ -71,3 +77,20 @@ class TicketRequestSerializer(serializers.Serializer):
     destination = serializers.CharField(help_text='Город назначения')
     sorting = serializers.CharField(help_text='Сортировка')
     departure_at = serializers.CharField(help_text='Время отправления')
+
+
+class UserCreateSerializer(DjUserCreateSerializer):
+    """Унаследовано от Djoser, добавлены поля."""
+    class Meta:
+        model = User
+        fields = ('username', 'password', 'email', 'first_name', 'last_name',
+                  'sex', 'phone_number', 'birth_date')
+        write_only_fields = ('password',)
+
+
+class UserSerializer(DjUserSerialzer):
+    """Унаследовано от Djoser, добавлены поля."""
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'sex',
+                  'phone_number', 'birth_date')
