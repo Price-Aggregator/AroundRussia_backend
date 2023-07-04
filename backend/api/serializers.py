@@ -3,6 +3,7 @@ from djoser.serializers import (UserCreateSerializer as DjUserCreateSerializer,
                                 UserSerializer as DjUserSerialzer)
 from rest_framework import serializers
 
+from categories.models import Activity, Travel
 from tickets.models import City
 
 User = get_user_model()
@@ -97,8 +98,18 @@ class UserSerializer(DjUserSerialzer):
 
 
 class ActivitySerializer(serializers.Serializer):
-    pass
+    """Сериализатор для модели Activity."""
+
+    class Meta:
+        model = Activity
+        fields = '__all__'
 
 
 class TravelSerializer(serializers.Serializer):
-    pass
+    """Сериализатор для модели Travel."""
+
+    activity = ActivitySerializer(many=True)
+
+    class Meta:
+        model = Travel
+        fields = '__all__'

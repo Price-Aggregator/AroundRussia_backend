@@ -5,6 +5,7 @@ import requests
 from rest_framework import filters, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
 from . import openapi
 from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
@@ -95,6 +96,18 @@ class SearchTicketView(APIView):
 
 class TravelViewSet(viewsets.ModelViewSet):
     """Viewset для путешествия."""
+
     queryset = Travel.objects.all()
     serializer_class = TravelSerializer
     permission_classes = AuthorPermission
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+
+class ActivityViewSet(viewsets.ModelViewSet):
+    """Viewset для активностей."""
+
+    queryset = Activity.objects.all()
+    serializer_class = ActivitySerializer
+    permission_classes = IsAuthenticated
