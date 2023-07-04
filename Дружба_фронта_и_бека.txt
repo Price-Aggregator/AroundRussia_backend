@@ -4,4 +4,4 @@
 4. В терминале из папки AroundRussia_backend выполняем docker-compose up -data
 5. Миграции и сбор статики должны выполниться самостоятельно
 6. Нужно выполнить docker-compose exec backend python manage.py fill_database_cities для заполнения базы данных городами
-6. Должно работать по адресу http://localhost
+7. Должно работать по адресу http://localhost
