@@ -1,0 +1,6 @@
+1. Из репозитория AroundRussia (фронт) копируем папку frontend (в которой лежит докерфайл) в AroundRussia_backend(скачанный репозиторий беков)
+2. Открываем файл AroundRussia_backend/docker-compose.yaml
+3. Убираем комментарии
+4. В терминале из папки AroundRussia_backend выполняем docker-compose up -data
+5. ???
+6. Должно работать по адресу http://localhost
