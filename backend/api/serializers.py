@@ -3,7 +3,7 @@ from djoser.serializers import (UserCreateSerializer as DjUserCreateSerializer,
                                 UserSerializer as DjUserSerialzer)
 from rest_framework import serializers
 
-from categories.models import Activity, Travel
+from categories.models import Activity, Travel, Flight
 from tickets.models import City
 
 User = get_user_model()
@@ -102,6 +102,14 @@ class ActivitySerializer(serializers.Serializer):
 
     class Meta:
         model = Activity
+        fields = '__all__'
+
+
+class FlightSerializer(serializers.Serializer):
+    """Сериализатор для модели Flight."""
+
+    class Meta:
+        model = Flight
         fields = '__all__'
 
 

@@ -13,9 +13,10 @@ from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .permissions import AuthorPermission
 from .serializers import (CitySerializer, TicketSerializer,
-                          TravelSerializer, ActivitySerializer)
+                          TravelSerializer, ActivitySerializer,
+                          FlightSerializer)
 from tickets.models import City  # noqa: I001
-from categories.models import Travel, Activity
+from categories.models import Travel, Activity, Flight
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
@@ -110,4 +111,12 @@ class ActivityViewSet(viewsets.ModelViewSet):
 
     queryset = Activity.objects.all()
     serializer_class = ActivitySerializer
+    permission_classes = IsAuthenticated
+
+
+class FlightViewSet(viewsets.ModelViewSet):
+    """Viewset для перелетов."""
+
+    queryset = Flight.objects.all()
+    serializer_class = FlightSerializer
     permission_classes = IsAuthenticated
