@@ -38,6 +38,29 @@ class Activity(models.Model):
         return self.name
 
 
+class Flight(models.Model):
+    """Модель полетов."""
+
+    departure_date = models.DateField(verbose_name='Дата отправления',
+                                      help_text='Укажите дату отправления')
+    departure_time = models.TimeField(verbose_name='Время отправления',
+                                      help_text='Укажите время отправления')
+    airline = models.CharField(verbose_name='Авиакомпания',
+                               help_text='Укажите авиакомпанию')
+    flight_number = models.CharField(verbose_name='Номер борта',
+                                     help_text='Укажите номер борта')
+    seats = models.CharField(verbose_name='Места',
+                             help_text='Укажите места')
+    price = models.IntegerField(verbose_name='Цена билета',
+                                help_text='Укажите цену билета')
+
+    class Meta:
+        """Meta модели Flights."""
+
+        verbose_name = 'Перелет'
+        verbose_name_plural = 'Перелеты'
+
+
 class Travel(models.Model):
     """Модель путешествий."""
 
@@ -54,6 +77,9 @@ class Travel(models.Model):
     activities = models.ManyToManyField(Activity,
                                         through='TravelActivity',
                                         verbose_name='Активности')
+    flights = models.ManyToManyField(Flight,
+                                     through='TravelFlight',
+                                     verbose_name='Перелеты')
 
     class Meta:
         """Meta модели Travel."""
@@ -90,3 +116,14 @@ class TravelActivity(models.Model):
         """Функция __str__ модели TravelActivity."""
         return (f'Активность {self.activity.name}'
                 f'в путешествии {self.travel.name}')
+
+
+class TravelFlight(models.Model):
+    """Модель для связи моделей Travel Flight."""
+
+    travel = models.ForeignKey(Travel,
+                               on_delete=models.CASCADE,
+                               related_name='travel')
+    flight = models.ForeignKey(Flight,
+                               on_delete=models.CASCADE,
+                               related_name='flight')
