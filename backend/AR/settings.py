@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'tickets.apps.TicketsConfig',
     'users.apps.UsersConfig',
+    'travel_diary.apps.TravelDiaryConfig',
 ]
 
 MIDDLEWARE = [
