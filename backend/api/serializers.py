@@ -101,14 +101,15 @@ class ActivityBaseSerializer(serializers.ModelSerializer):
     """Базовый сериализатор для карточек."""
     class Meta:
         model = Activity
-        fields = ['travel',
+        fields = ('author',
+                  'travel',
                   'id',
                   'name',
                   'category',
                   'date',
                   'time',
                   'price',
-                  'media']
+                  'media')
 
 
 class FlightSerializer(ActivityBaseSerializer):
@@ -120,9 +121,8 @@ class FlightSerializer(ActivityBaseSerializer):
                                         max_length=50,
                                         required=True)
 
-    class Meta:
-        model = Activity
-        fields = ActivityBaseSerializer.Meta.fields + ['origin', 'destination']
+    class Meta(ActivityBaseSerializer.Meta):
+        fields = ActivityBaseSerializer.Meta.fields + ('origin', 'destination')
 
 
 class HotelSerializer(ActivityBaseSerializer):
@@ -131,9 +131,8 @@ class HotelSerializer(ActivityBaseSerializer):
                                     max_length=255,
                                     required=True)
 
-    class Meta:
-        model = Activity
-        fields = ActivityBaseSerializer.Meta.fields + ['address']
+    class Meta(ActivityBaseSerializer.Meta):
+        fields = ActivityBaseSerializer.Meta.fields + ('address',)
 
 
 class ActivitySerializer(ActivityBaseSerializer):
@@ -142,6 +141,5 @@ class ActivitySerializer(ActivityBaseSerializer):
                                     max_length=255,
                                     required=True)
 
-    class Meta:
-        model = Activity
-        fields = ActivityBaseSerializer.Meta.fields + ['address']
+    class Meta(ActivityBaseSerializer.Meta):
+        fields = ActivityBaseSerializer.Meta.fields + ('address',)

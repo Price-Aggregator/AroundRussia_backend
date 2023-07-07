@@ -1,6 +1,7 @@
 from django.db import models
 
 from api.validators import validate_file_extension
+from users.models import User
 
 
 class Travel(models.Model):
@@ -36,6 +37,9 @@ class Travel(models.Model):
 
 class Activity(models.Model):
     """Модель активностей."""
+    author = models.ForeignKey(User,
+                               on_delete=models.CASCADE,
+                               related_name='author')
     travel = models.ForeignKey(Travel,
                                on_delete=models.CASCADE,
                                related_name='travel')
