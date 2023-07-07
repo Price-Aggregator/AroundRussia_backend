@@ -112,7 +112,6 @@ class Base64ImageField(serializers.ImageField):
 
 class TravelListSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода списка путешествий."""
-    image = Base64ImageField(required=False, allow_null=True)
 
     class Meta:
         model = Travel
@@ -120,4 +119,5 @@ class TravelListSerializer(serializers.ModelSerializer):
 
 
 class TravelSerializer(serializers.ModelSerializer):
+    """Сериализатор для вывода путешествия с активностями."""
     pass
