@@ -2,9 +2,9 @@ import os
 from http import HTTPStatus
 
 import requests
-from djoser.views import (TokenCreateView as DjTokenCreateView,
-                          TokenDestroyView as DjTokenDestroyView)
-from rest_framework import filters, status, viewsets
+from djoser.views import (TokenCreateView as DjTokenCreateView,  # noqa: I001
+                          TokenDestroyView as DjTokenDestroyView)  # noqa: I001
+from rest_framework import filters, status, viewsets  # noqa: I005
 from rest_framework.response import Response
 from rest_framework.views import APIView
 

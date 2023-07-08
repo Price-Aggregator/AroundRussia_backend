@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
-from djoser.serializers import (UserCreateSerializer as DjUserCreateSerializer,
-                                UserSerializer as DjUserSerialzer)
-from rest_framework import serializers
-
+from djoser.serializers import (  # noqa: I001
+    UserCreateSerializer as DjUserCreateSerializer,  # noqa: I001
+    UserSerializer as DjUserSerialzer  # noqa: I001
+)  # noqa: I001
+from rest_framework import serializers  # noqa: I005
+# noqa: I004
 from tickets.models import City
 
 User = get_user_model()
