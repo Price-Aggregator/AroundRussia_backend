@@ -106,18 +106,33 @@ class Base64ImageField(serializers.ImageField):
         if isinstance(data, str) and data.startswith('data:image'):
             format_file, image_str = data.split(';base64,')
             extension = format_file.split('/')[-1]
-            data = ContentFile(base64.b64decode(image_str), name='temp.' + extension)
+            data = ContentFile(
+                base64.b64decode(image_str), name='temp.' + extension
+            )
         return super().to_internal_value(data)
 
 
 class TravelListSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода списка путешествий."""
-
     class Meta:
         model = Travel
-        fields = ('name', 'start_date', 'end_date', 'image')
+        fields = ('name', 'start_date', 'end_date', 'image', 'traveller')
 
 
 class TravelSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода путешествия с активностями."""
-    pass
+    image = Base64ImageField(required=False, allow_null=True)
+    # travel = ActivitySerializer(many=True)
+
+    class Meta:
+        model = Travel
+        fields = ('name', 'start_date', 'end_date', 'image', 'traveller',
+                  'travel')
+        read_only_fields = ('traveller', 'travel')
+
+    def validate(self, data):
+        if data['start_date'] >= data['end_date']:
+            raise serializers.ValidationError(
+                'Дата окончания путешествия не может быть раньше даты начала!'
+            )
+        return data

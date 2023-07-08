@@ -1,4 +1,8 @@
+from django.contrib.auth import get_user_model
 from django.db import models
+
+
+User = get_user_model()
 
 
 class Travel(models.Model):
@@ -20,6 +24,12 @@ class Travel(models.Model):
         upload_to='travel_diary/images/',
         null=True,
         default=None
+    )
+    traveller = models.ForeignKey(
+        User,
+        verbose_name='Путешественник',
+        on_delete=models.CASCADE,
+        related_name='travels'
     )
 
     class Meta:

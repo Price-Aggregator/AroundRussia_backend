@@ -100,3 +100,6 @@ class TravelViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return TravelListSerializer
         return TravelSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(traveller=self.request.user)
