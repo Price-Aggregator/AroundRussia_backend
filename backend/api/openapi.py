@@ -116,3 +116,20 @@ search_ticket_post = extend_schema(description=(
         )
 }
 )
+
+token_login = extend_schema(
+    responses={
+        200: inline_serializer(
+            'Token',
+            {
+                'auth_token': serializers.CharField()
+            }
+        )
+    }
+)
+
+token_destroy = extend_schema(
+    responses={
+        204: None
+    }
+)
