@@ -10,7 +10,9 @@ from . import openapi
 from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
-from .serializers import CitySerializer, TicketSerializer, TravelListSerializer, TravelSerializer
+from .serializers import (CitySerializer, TicketSerializer,
+                          TravelListSerializer, TravelSerializer)
+# noqa: I004, I001
 from tickets.models import City  # noqa: I001
 from travel_diary.models import Travel  # noqa: I001
 from .utils import get_calendar_days, lazy_cycling

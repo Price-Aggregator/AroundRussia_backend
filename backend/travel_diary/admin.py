@@ -1,5 +1,5 @@
 from django.contrib import admin
-
+# noqa: I004
 from travel_diary.models import Travel
 
 
