@@ -11,11 +11,11 @@ services:
     image: redis:latest
     restart: always
 
-  frontend:
-    build:
-      context: ./frontend
-    volumes:
-      - ./frontend_b:/app/result_build/
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #   volumes:
+  #     - ./frontend_b:/app/result_build/
 
   backend:
     build:
@@ -52,7 +52,7 @@ services:
       - media_value:/var/html/media/
     depends_on:
       - backend
-      - frontend
+      # - frontend
     restart: always
 
 volumes:
