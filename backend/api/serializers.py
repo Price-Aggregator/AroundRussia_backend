@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import (  # noqa: I001
     UserCreateSerializer as DjUserCreateSerializer,  # noqa: I001
-    UserSerializer as DjUserSerialzer  # noqa: I001
+    UserSerializer as DjUserSerializer  # noqa: I001
 )  # noqa: I001
 from rest_framework import serializers  # noqa: I005
 # noqa: I004
@@ -90,7 +90,7 @@ class UserCreateSerializer(DjUserCreateSerializer):
         write_only_fields = ('password',)
 
 
-class UserSerializer(DjUserSerialzer):
+class UserSerializer(DjUserSerializer):
     """Унаследовано от Djoser, добавлены поля."""
     class Meta:
         model = User
