@@ -30,6 +30,7 @@ INSTALLED_APPS = [
 
     'api.apps.ApiConfig',
     'tickets.apps.TicketsConfig',
+    'travel_diary.apps.TravelDiaryConfig',
     'users.apps.UsersConfig',
 ]
 

@@ -1,9 +1,13 @@
-from django.contrib.auth import get_user_model
-from djoser.serializers import (UserCreateSerializer as DjUserCreateSerializer,
-                                UserSerializer as DjUserSerialzer)
-from rest_framework import serializers
+import base64
 
+from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
+from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
+from djoser.serializers import UserSerializer as DjUserSerialzer
+from rest_framework import serializers
+# noqa: I004
 from tickets.models import City
+from travel_diary.models import Travel
 
 User = get_user_model()
 
@@ -94,3 +98,41 @@ class UserSerializer(DjUserSerialzer):
         model = User
         fields = ('username', 'email', 'first_name', 'last_name', 'sex',
                   'phone_number', 'birth_date')
+
+
+class Base64ImageField(serializers.ImageField):
+    """Кастомный тип поля для декодирования медиафайлов."""
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            format_file, image_str = data.split(';base64,')
+            extension = format_file.split('/')[-1]
+            data = ContentFile(
+                base64.b64decode(image_str), name='temp.' + extension
+            )
+        return super().to_internal_value(data)
+
+
+class TravelListSerializer(serializers.ModelSerializer):
+    """Сериализатор для вывода списка путешествий."""
+    class Meta:
+        model = Travel
+        fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
+
+
+class TravelSerializer(serializers.ModelSerializer):
+    """Сериализатор для вывода путешествия с активностями."""
+    image = Base64ImageField(required=False, allow_null=True)
+    # activity = ActivitySerializer(many=True, source='travel')
+
+    class Meta:
+        model = Travel
+        fields = ('name', 'start_date', 'end_date', 'image', 'traveler',
+                  'activity')
+        read_only_fields = ('traveler', 'travel')
+
+    def validate(self, data):
+        if data['start_date'] >= data['end_date']:
+            raise serializers.ValidationError(
+                'Дата окончания путешествия не может быть раньше даты начала!'
+            )
+        return data
