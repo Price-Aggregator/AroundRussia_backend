@@ -5,7 +5,6 @@ from users.models import User
 
 
 class Travel(models.Model):
-    """Модель путешествий."""
     name = models.CharField(
         'Наименование путешествия',
         max_length=200,
@@ -24,6 +23,12 @@ class Travel(models.Model):
         upload_to='travel_diary/images/',
         null=True,
         default=None
+    )
+    traveller = models.ForeignKey(
+        User,
+        verbose_name='Путешественник',
+        on_delete=models.CASCADE,
+        related_name='travels'
     )
 
     class Meta:

@@ -1,11 +1,13 @@
+import base64
+
 from django.contrib.auth import get_user_model
-from djoser.serializers import (UserCreateSerializer as DjUserCreateSerializer,
-                                UserSerializer as DjUserSerialzer)
+from django.core.files.base import ContentFile
+from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
+from djoser.serializers import UserSerializer as DjUserSerialzer
 from rest_framework import serializers
-
+# noqa: I004
 from tickets.models import City
-from travel_diary.models import Activity
-
+from travel_diary.models import Activity, Travel
 User = get_user_model()
 
 
@@ -95,51 +97,3 @@ class UserSerializer(DjUserSerialzer):
         model = User
         fields = ('username', 'email', 'first_name', 'last_name', 'sex',
                   'phone_number', 'birth_date')
-
-
-class ActivityBaseSerializer(serializers.ModelSerializer):
-    """Базовый сериализатор для карточек."""
-    class Meta:
-        model = Activity
-        fields = ('author',
-                  'travel',
-                  'id',
-                  'name',
-                  'category',
-                  'date',
-                  'time',
-                  'price',
-                  'media')
-
-
-class FlightSerializer(ActivityBaseSerializer):
-    """Сериализатор для вывода перелетов."""
-    origin = serializers.CharField(help_text='Введите пункт отправления',
-                                   max_length=50,
-                                   required=True)
-    destination = serializers.CharField(help_text='Введите пункт назначения',
-                                        max_length=50,
-                                        required=True)
-
-    class Meta(ActivityBaseSerializer.Meta):
-        fields = ActivityBaseSerializer.Meta.fields + ('origin', 'destination')
-
-
-class HotelSerializer(ActivityBaseSerializer):
-    """Сериализатор для вывода отелей."""
-    address = serializers.CharField(help_text='Укажите адрес',
-                                    max_length=255,
-                                    required=True)
-
-    class Meta(ActivityBaseSerializer.Meta):
-        fields = ActivityBaseSerializer.Meta.fields + ('address',)
-
-
-class ActivitySerializer(ActivityBaseSerializer):
-    """Сериализатор для вывода активностей."""
-    address = serializers.CharField(help_text='Укажите адрес',
-                                    max_length=255,
-                                    required=True)
-
-    class Meta(ActivityBaseSerializer.Meta):
-        fields = ActivityBaseSerializer.Meta.fields + ('address',)

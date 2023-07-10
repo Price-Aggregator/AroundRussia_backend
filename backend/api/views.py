@@ -12,9 +12,10 @@ from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .permissions import IsAuthorOrAdmin
 from .serializers import (ActivitySerializer, CitySerializer, FlightSerializer,
-                          HotelSerializer, TicketSerializer)
+                          HotelSerializer, TicketSerializer,
+                          TravelListSerializer, TravelSerializer)
 from tickets.models import City  # noqa: I001
-from travel_diary.models import Activity  # noqa: I001
+from travel_diary.models import Activity, Travel # noqa: I001
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
@@ -91,7 +92,18 @@ class SearchTicketView(APIView):
             my_serializer = TicketSerializer(data=response_data, many=True)
             return Response(my_serializer.initial_data)
         return Response(HTTPStatus.BAD_REQUEST)
+class TravelViewSet(viewsets.ModelViewSet):
+    """ViewSet для получения путешествий."""
+    serializer_class = TravelSerializer
+    queryset = Travel.objects.all()
 
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return TravelListSerializer
+        return TravelSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(traveller=self.request.user)
 
 class ActivityBaseViewSet(viewsets.ModelViewSet):
     """Базовый ViewSet для карточек."""
