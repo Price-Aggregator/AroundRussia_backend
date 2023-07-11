@@ -3,7 +3,8 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (ActivityViewSet, CalendarView, CityViewSet,
                     FlightViewSet, HotelViewSet, SearchTicketView,
-                    TravelViewSet)
+                    TravelViewSet, TokenCreateView, TokenDestroyView)
+
 
 app_name = 'api'
 
@@ -19,6 +20,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('calendar', CalendarView.as_view()),
     path('airline', SearchTicketView.as_view()),
-    path('auth/', include('djoser.urls.authtoken')),
+    path(r"^auth/token/login/?$", TokenCreateView.as_view(), name='login'),
+    path(r"^auth/token/logout/?$", TokenDestroyView.as_view(), name="logout"),
     path('', include('djoser.urls'))
 ]

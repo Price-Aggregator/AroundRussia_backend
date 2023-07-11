@@ -2,7 +2,9 @@ import os
 from http import HTTPStatus
 
 import requests
-from rest_framework import filters, status, viewsets
+from djoser.views import (TokenCreateView as DjTokenCreateView,  # noqa: I001
+                          TokenDestroyView as DjTokenDestroyView)  # noqa: I001
+from rest_framework import filters, status, viewsets  # noqa: I005
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -93,6 +95,19 @@ class SearchTicketView(APIView):
             return Response(my_serializer.initial_data)
         return Response(HTTPStatus.BAD_REQUEST)
 
+
+class TokenCreateView(DjTokenCreateView):
+    """Исправлена документация."""
+    @openapi.token_login
+    def post(self, request, **kwargs):
+        return super().post(request, **kwargs)
+
+
+class TokenDestroyView(DjTokenDestroyView):
+    """Исправлена документация."""
+    @openapi.token_destroy
+    def post(self, request):
+        return super().post(request)
 
 class TravelViewSet(viewsets.ModelViewSet):
     """ViewSet для получения путешествий."""

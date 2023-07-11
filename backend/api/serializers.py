@@ -3,8 +3,9 @@ import base64
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
-from djoser.serializers import UserSerializer as DjUserSerialzer
+from djoser.serializers import UserSerializer as DjUserSerializer
 from rest_framework import serializers  # noqa: I004
+
 from tickets.models import City
 from travel_diary.models import Activity, Travel
 User = get_user_model()
@@ -90,7 +91,7 @@ class UserCreateSerializer(DjUserCreateSerializer):
         write_only_fields = ('password',)
 
 
-class UserSerializer(DjUserSerialzer):
+class UserSerializer(DjUserSerializer):
     """Унаследовано от Djoser, добавлены поля."""
     class Meta:
         model = User
