@@ -24,7 +24,8 @@ class AirportField(serializers.Field):
     def to_internal_value(self, data):
         if data in BLOCK_CITY:
             raise serializers.ValidationError(
-                'Извините, в данный момент аэропорт закрыт')
+                'Извините, в данный момент аэропорт закрыт'
+            )
         return data
 
 
