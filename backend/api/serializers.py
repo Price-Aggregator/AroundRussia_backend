@@ -1,6 +1,17 @@
+import base64
+
+from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
+from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
+from djoser.serializers import UserSerializer as DjUserSerializer
 from rest_framework import serializers
+# noqa: I004
 from tickets.models import City
+from travel_diary.models import Travel
+
 from .constants import BLOCK_CITY
+
+User = get_user_model()
 
 
 class AirportField(serializers.Field):
@@ -86,3 +97,58 @@ class TicketRequestSerializer(serializers.Serializer):
     destination = serializers.CharField(help_text='Город назначения')
     sorting = serializers.CharField(help_text='Сортировка')
     departure_at = serializers.CharField(help_text='Время отправления')
+
+
+class UserCreateSerializer(DjUserCreateSerializer):
+    """Унаследовано от Djoser, добавлены поля."""
+    class Meta:
+        model = User
+        fields = ('username', 'password', 'email', 'first_name', 'last_name',
+                  'sex', 'phone_number', 'birth_date')
+        write_only_fields = ('password',)
+
+
+class UserSerializer(DjUserSerializer):
+    """Унаследовано от Djoser, добавлены поля."""
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'sex',
+                  'phone_number', 'birth_date')
+
+
+class Base64ImageField(serializers.ImageField):
+    """Кастомный тип поля для декодирования медиафайлов."""
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            format_file, image_str = data.split(';base64,')
+            extension = format_file.split('/')[-1]
+            data = ContentFile(
+                base64.b64decode(image_str), name='temp.' + extension
+            )
+        return super().to_internal_value(data)
+
+
+class TravelListSerializer(serializers.ModelSerializer):
+    """Сериализатор для вывода списка путешествий."""
+    class Meta:
+        model = Travel
+        fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
+
+
+class TravelSerializer(serializers.ModelSerializer):
+    """Сериализатор для вывода путешествия с активностями."""
+    image = Base64ImageField(required=False, allow_null=True)
+    # activity = ActivitySerializer(many=True, source='travel')
+
+    class Meta:
+        model = Travel
+        fields = ('name', 'start_date', 'end_date', 'image', 'traveler',
+                  'activity')
+        read_only_fields = ('traveler', 'travel')
+
+    def validate(self, data):
+        if data['start_date'] >= data['end_date']:
+            raise serializers.ValidationError(
+                'Дата окончания путешествия не может быть раньше даты начала!'
+            )
+        return data
