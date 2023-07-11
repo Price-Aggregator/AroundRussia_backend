@@ -109,6 +109,7 @@ class TokenDestroyView(DjTokenDestroyView):
     def post(self, request):
         return super().post(request)
 
+
 class TravelViewSet(viewsets.ModelViewSet):
     """ViewSet для получения путешествий."""
     serializer_class = TravelSerializer

@@ -45,3 +45,6 @@ PERIOD_SLICE: Final[int] = 8
 BLOCK_CITY = {'AAQ', 'EGO', 'BZK', 'VOZ', 'GDZ', 'KRR', 'URS', 'LPK', 'URS',
               'ROV', 'ESL', 'SIP'}
 """Города закрытые из-за СВО."""
+
+CATEGORIES = {'activity', 'flight', 'hotel'}
+"""Допустимые категории активностей."""

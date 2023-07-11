@@ -20,7 +20,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('calendar', CalendarView.as_view()),
     path('airline', SearchTicketView.as_view()),
-    path(r"^auth/token/login/?$", TokenCreateView.as_view(), name='login'),
-    path(r"^auth/token/logout/?$", TokenDestroyView.as_view(), name="logout"),
+    path('auth/token/login/', TokenCreateView.as_view(), name='login'),
+    path('auth/token/logout/', TokenDestroyView.as_view(), name="logout"),
     path('', include('djoser.urls'))
 ]

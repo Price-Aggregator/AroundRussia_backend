@@ -8,6 +8,7 @@ from rest_framework import serializers  # noqa: I004
 
 from tickets.models import City
 from travel_diary.models import Activity, Travel
+from .constants import CATEGORIES
 User = get_user_model()
 
 
@@ -126,7 +127,7 @@ class TravelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Travel
         fields = ('name', 'start_date', 'end_date', 'image', 'traveler',
-                  'activity')
+                  'travel')
         read_only_fields = ('traveler', 'travel')
 
     def validate(self, data):
@@ -152,6 +153,13 @@ class ActivityBaseSerializer(serializers.ModelSerializer):
                   'time',
                   'price',
                   'media')
+
+    def validate(self, data):
+        if data['category'] not in CATEGORIES:
+            raise serializers.ValidationError(
+                f'Допустимые категории {CATEGORIES}'
+            )
+        return data
 
 
 class FlightSerializer(ActivityBaseSerializer):
