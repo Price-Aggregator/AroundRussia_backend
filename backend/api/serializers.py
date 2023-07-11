@@ -97,3 +97,89 @@ class UserSerializer(DjUserSerialzer):
         model = User
         fields = ('username', 'email', 'first_name', 'last_name', 'sex',
                   'phone_number', 'birth_date')
+
+
+class Base64ImageField(serializers.ImageField):
+    """Кастомный тип поля для декодирования медиафайлов."""
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            format_file, image_str = data.split(';base64,')
+            extension = format_file.split('/')[-1]
+            data = ContentFile(
+                base64.b64decode(image_str), name='temp.' + extension
+            )
+        return super().to_internal_value(data)
+
+
+class TravelListSerializer(serializers.ModelSerializer):
+    """Сериализатор для вывода списка путешествий."""
+    class Meta:
+        model = Travel
+        fields = ('name', 'start_date', 'end_date', 'image', 'traveller')
+
+
+class TravelSerializer(serializers.ModelSerializer):
+    """Сериализатор для вывода путешествия с активностями."""
+    image = Base64ImageField(required=False, allow_null=True)
+    # travel = ActivitySerializer(many=True)
+
+    class Meta:
+        model = Travel
+        fields = ('name', 'start_date', 'end_date', 'image', 'traveller',
+                  'travel')
+        read_only_fields = ('traveller', 'travel')
+
+    def validate(self, data):
+        if data['start_date'] >= data['end_date']:
+            raise serializers.ValidationError(
+                'Дата окончания путешествия не может быть раньше даты начала!'
+            )
+        return data
+
+
+class ActivityBaseSerializer(serializers.ModelSerializer):
+    """Базовый сериализатор для карточек."""
+    class Meta:
+        model = Activity
+        fields = ('author',
+                  'travel',
+                  'id',
+                  'name',
+                  'category',
+                  'date',
+                  'time',
+                  'price',
+                  'media')
+
+
+class FlightSerializer(ActivityBaseSerializer):
+    """Сериализатор для вывода перелетов."""
+    origin = serializers.CharField(help_text='Введите пункт отправления',
+                                   max_length=50,
+                                   required=True)
+    destination = serializers.CharField(help_text='Введите пункт назначения',
+                                        max_length=50,
+                                        required=True)
+
+    class Meta(ActivityBaseSerializer.Meta):
+        fields = ActivityBaseSerializer.Meta.fields + ('origin', 'destination')
+
+
+class HotelSerializer(ActivityBaseSerializer):
+    """Сериализатор для вывода отелей."""
+    address = serializers.CharField(help_text='Укажите адрес',
+                                    max_length=255,
+                                    required=True)
+
+    class Meta(ActivityBaseSerializer.Meta):
+        fields = ActivityBaseSerializer.Meta.fields + ('address',)
+
+
+class ActivitySerializer(ActivityBaseSerializer):
+    """Сериализатор для вывода активностей."""
+    address = serializers.CharField(help_text='Укажите адрес',
+                                    max_length=255,
+                                    required=True)
+
+    class Meta(ActivityBaseSerializer.Meta):
+        fields = ActivityBaseSerializer.Meta.fields + ('address',)
