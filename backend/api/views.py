@@ -113,6 +113,10 @@ class ActivityBaseViewSet(viewsets.ModelViewSet):
     queryset = Activity.objects.all()
     permission_classes = (IsAuthorOrAdmin,)
 
+    def perform_create(self, serializer):
+        """Переопределение метода perform_create."""
+        serializer.save(author=self.request.user)
+
 
 class FlightViewSet(ActivityBaseViewSet):
     """ViewSet для перелетов."""
@@ -127,7 +131,3 @@ class HotelViewSet(ActivityBaseViewSet):
 class ActivityViewSet(ActivityBaseViewSet):
     """ViewSet для активностей."""
     serializer_class = ActivitySerializer
-
-    def perform_create(self, serializer):
-        """Переопределение метода perform_create."""
-        serializer.save(author=self.request.user)
