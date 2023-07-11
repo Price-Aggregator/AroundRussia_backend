@@ -2,9 +2,9 @@ import os
 from http import HTTPStatus
 
 import requests
-from djoser.views import (TokenCreateView as DjTokenCreateView,  # noqa: I001
-                          TokenDestroyView as DjTokenDestroyView)  # noqa: I001
-from rest_framework import filters, status, viewsets  # noqa: I005
+from djoser.views import TokenCreateView as DjTokenCreateView
+from djoser.views import TokenDestroyView as DjTokenDestroyView
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,15 +12,18 @@ from . import openapi
 from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
-from .serializers import CitySerializer, TicketSerializer
+from .serializers import (CitySerializer, TicketSerializer,
+                          TravelListSerializer, TravelSerializer)
+# noqa: I004, I001
 from tickets.models import City  # noqa: I001
+from travel_diary.models import Travel  # noqa: I001
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
 TOKEN = os.getenv('TOKEN')
 
 
-class CityViewSet(viewsets.ReadOnlyModelViewSet):
+class CityViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """ViewSet для получения городов."""
     serializer_class = CitySerializer
     queryset = City.objects.all()
@@ -90,6 +93,20 @@ class SearchTicketView(APIView):
             my_serializer = TicketSerializer(data=response_data, many=True)
             return Response(my_serializer.initial_data)
         return Response(HTTPStatus.BAD_REQUEST)
+
+
+class TravelViewSet(viewsets.ModelViewSet):
+    """ViewSet для получения путешествий."""
+    serializer_class = TravelSerializer
+    queryset = Travel.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return TravelListSerializer
+        return TravelSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(traveler=self.request.user)
 
 
 class TokenCreateView(DjTokenCreateView):

@@ -2,13 +2,14 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import (CalendarView, CityViewSet, SearchTicketView,
-                    TokenCreateView, TokenDestroyView)
+                    TokenCreateView, TokenDestroyView, TravelViewSet)
 
 app_name = 'api'
 
 router = DefaultRouter()
 
 router.register('cities', CityViewSet)
+router.register('travels', TravelViewSet)
 
 
 urlpatterns = [
