@@ -4,16 +4,14 @@ from .constants import BLOCK_CITY
 
 
 class AirportField(serializers.Field):
-    """Поле для серилиализатоа.
-       Проверяет что все города сейчас доступны"""
+    """Поле для сериализатора.
+       Проверяет что все города сейчас доступны."""
 
     def to_representation(self, value):
         return value
 
     def to_internal_value(self, data):
-        try:
-            data not in BLOCK_CITY
-        except ValueError:
+        if data in BLOCK_CITY:
             raise serializers.ValidationError(
                 'Извините, в данный момент аэропорт закрыт')
         return data
