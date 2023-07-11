@@ -1,7 +1,9 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 
 from api.validators import validate_file_extension
-from users.models import User
+
+User = get_user_model()
 
 
 class Travel(models.Model):

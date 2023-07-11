@@ -10,6 +10,7 @@ from datetime import datetime
 from tickets.models import City
 from travel_diary.models import Activity, Travel
 from .constants import CATEGORIES
+
 User = get_user_model()
 
 
