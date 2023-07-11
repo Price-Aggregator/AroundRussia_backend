@@ -24,7 +24,7 @@ class Travel(models.Model):
         null=True,
         default=None
     )
-    traveller = models.ForeignKey(
+    traveler = models.ForeignKey(
         User,
         verbose_name='Путешественник',
         on_delete=models.CASCADE,

@@ -114,19 +114,19 @@ class TravelListSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода списка путешествий."""
     class Meta:
         model = Travel
-        fields = ('name', 'start_date', 'end_date', 'image', 'traveller')
+        fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
 
 
 class TravelSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода путешествия с активностями."""
     image = Base64ImageField(required=False, allow_null=True)
-    # travel = ActivitySerializer(many=True)
+    # activity = ActivitySerializer(many=True, source='travel')
 
     class Meta:
         model = Travel
-        fields = ('name', 'start_date', 'end_date', 'image', 'traveller',
-                  'travel')
-        read_only_fields = ('traveller', 'travel')
+        fields = ('name', 'start_date', 'end_date', 'image', 'traveler',
+                  'activity')
+        read_only_fields = ('traveler', 'travel')
 
     def validate(self, data):
         if data['start_date'] >= data['end_date']:
