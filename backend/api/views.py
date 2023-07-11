@@ -2,6 +2,8 @@ import os
 from http import HTTPStatus
 
 import requests
+from djoser.views import TokenCreateView as DjTokenCreateView
+from djoser.views import TokenDestroyView as DjTokenDestroyView
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -105,3 +107,17 @@ class TravelViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(traveler=self.request.user)
+
+
+class TokenCreateView(DjTokenCreateView):
+    """Исправлена документация."""
+    @openapi.token_login
+    def post(self, request, **kwargs):
+        return super().post(request, **kwargs)
+
+
+class TokenDestroyView(DjTokenDestroyView):
+    """Исправлена документация."""
+    @openapi.token_destroy
+    def post(self, request):
+        return super().post(request)
