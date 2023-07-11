@@ -5,6 +5,7 @@ from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
 from djoser.serializers import UserSerializer as DjUserSerializer
 from rest_framework import serializers  # noqa: I004
+from datetime import datetime
 
 from tickets.models import City
 from travel_diary.models import Activity, Travel
@@ -158,6 +159,15 @@ class ActivityBaseSerializer(serializers.ModelSerializer):
         if data['category'] not in CATEGORIES:
             raise serializers.ValidationError(
                 f'Допустимые категории {CATEGORIES}'
+            )
+        date = datetime.strptime(str(data['date']), '%Y-%m-%d')
+        if date < datetime.today():
+            raise serializers.ValidationError(
+                'Дата не может быть раньше сегодня.'
+            )
+        if 'price' in data and data['price'] < 0:
+            raise serializers.ValidationError(
+                'Цена не может быть ниже 0.'
             )
         return data
 
