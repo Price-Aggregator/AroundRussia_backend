@@ -2,7 +2,7 @@ import os
 from http import HTTPStatus
 
 import requests
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -21,7 +21,7 @@ from .validators import params_validation
 TOKEN = os.getenv('TOKEN')
 
 
-class CityViewSet(viewsets.ReadOnlyModelViewSet):
+class CityViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """ViewSet для получения городов."""
     serializer_class = CitySerializer
     queryset = City.objects.all()
@@ -104,4 +104,4 @@ class TravelViewSet(viewsets.ModelViewSet):
         return TravelSerializer
 
     def perform_create(self, serializer):
-        serializer.save(traveller=self.request.user)
+        serializer.save(traveler=self.request.user)
