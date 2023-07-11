@@ -15,7 +15,7 @@ from .serializers import (ActivitySerializer, CitySerializer, FlightSerializer,
                           HotelSerializer, TicketSerializer,
                           TravelListSerializer, TravelSerializer)
 from tickets.models import City  # noqa: I001
-from travel_diary.models import Activity, Travel # noqa: I001
+from travel_diary.models import Activity, Travel  # noqa: I001
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
@@ -92,6 +92,8 @@ class SearchTicketView(APIView):
             my_serializer = TicketSerializer(data=response_data, many=True)
             return Response(my_serializer.initial_data)
         return Response(HTTPStatus.BAD_REQUEST)
+
+
 class TravelViewSet(viewsets.ModelViewSet):
     """ViewSet для получения путешествий."""
     serializer_class = TravelSerializer
@@ -104,6 +106,7 @@ class TravelViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(traveller=self.request.user)
+
 
 class ActivityBaseViewSet(viewsets.ModelViewSet):
     """Базовый ViewSet для карточек."""
@@ -124,3 +127,7 @@ class HotelViewSet(ActivityBaseViewSet):
 class ActivityViewSet(ActivityBaseViewSet):
     """ViewSet для активностей."""
     serializer_class = ActivitySerializer
+
+    def perform_create(self, serializer):
+        """Переопределение метода perform_create."""
+        serializer.save(author=self.request.user)

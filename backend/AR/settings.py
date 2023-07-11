@@ -32,7 +32,6 @@ INSTALLED_APPS = [
     'tickets.apps.TicketsConfig',
     'travel_diary.apps.TravelDiaryConfig',
     'users.apps.UsersConfig',
-    'travel_diary.apps.TravelDiaryConfig',
 ]
 
 MIDDLEWARE = [
@@ -65,17 +64,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'AR.wsgi.application'
 
-
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
-        'NAME': os.getenv('DB_NAME', default='postgres'),
-        'USER': os.getenv('POSTGRES_USER', default='postgres'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
-        'HOST': os.getenv('DB_HOST', default='db'),
-        'PORT': os.getenv('DB_PORT', default=5432)
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
+#         'NAME': os.getenv('DB_NAME', default='postgres'),
+#         'USER': os.getenv('POSTGRES_USER', default='postgres'),
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
+#         'HOST': os.getenv('DB_HOST', default='db'),
+#         'PORT': os.getenv('DB_PORT', default=5432)
+#     }
+# }
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -110,19 +115,19 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
-REDIS_PORT = os.getenv('REDIS_PORT', 6379)
-REDIS_DB = os.getenv('REDIS_DB', 0)
+# REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
+# REDIS_PORT = os.getenv('REDIS_PORT', 6379)
+# REDIS_DB = os.getenv('REDIS_DB', 0)
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        }
-    }
-}
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#         }
+#     }
+# }
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
