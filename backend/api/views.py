@@ -121,7 +121,7 @@ class TravelViewSet(viewsets.ModelViewSet):
         return TravelSerializer
 
     def perform_create(self, serializer):
-        serializer.save(traveller=self.request.user)
+        serializer.save(traveler=self.request.user)
 
 
 class ActivityBaseViewSet(viewsets.ModelViewSet):
