@@ -9,9 +9,7 @@ from rest_framework import serializers  # noqa: I004
 from tickets.models import City
 from travel_diary.models import Activity, Travel
 
-from .constants import CATEGORIES
-
-from .constants import BLOCK_CITY
+from .constants import BLOCK_CITY, CATEGORIES
 
 User = get_user_model()
 
