@@ -7,7 +7,6 @@ from djoser.views import TokenDestroyView as DjTokenDestroyView
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from tickets.models import City  # noqa: I001
 from travel_diary.models import Activity, Travel  # noqa: I001
 
