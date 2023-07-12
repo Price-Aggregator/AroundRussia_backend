@@ -4,10 +4,12 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
 from djoser.serializers import UserSerializer as DjUserSerializer
-from rest_framework import serializers
-# noqa: I004
+from rest_framework import serializers  # noqa: I004
+from datetime import datetime
+
 from tickets.models import City
-from travel_diary.models import Travel
+from travel_diary.models import Activity, Travel
+from .constants import CATEGORIES
 
 User = get_user_model()
 
@@ -127,7 +129,7 @@ class TravelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Travel
         fields = ('name', 'start_date', 'end_date', 'image', 'traveler',
-                  'activity')
+                  'travel')
         read_only_fields = ('traveler', 'travel')
 
     def validate(self, data):
@@ -136,3 +138,69 @@ class TravelSerializer(serializers.ModelSerializer):
                 'Дата окончания путешествия не может быть раньше даты начала!'
             )
         return data
+
+
+class ActivityBaseSerializer(serializers.ModelSerializer):
+    """Базовый сериализатор для карточек."""
+    author = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = Activity
+        fields = ('author',
+                  'travel',
+                  'id',
+                  'name',
+                  'category',
+                  'date',
+                  'time',
+                  'price',
+                  'media')
+
+    def validate(self, data):
+        if data['category'] not in CATEGORIES:
+            raise serializers.ValidationError(
+                f'Допустимые категории {CATEGORIES}'
+            )
+        date = datetime.strptime(str(data['date']), '%Y-%m-%d')
+        if date < datetime.today():
+            raise serializers.ValidationError(
+                'Дата не может быть раньше сегодня.'
+            )
+        if 'price' in data and data['price'] < 0:
+            raise serializers.ValidationError(
+                'Цена не может быть ниже 0.'
+            )
+        return data
+
+
+class FlightSerializer(ActivityBaseSerializer):
+    """Сериализатор для вывода перелетов."""
+    origin = serializers.CharField(help_text='Введите пункт отправления',
+                                   max_length=50,
+                                   required=True)
+    destination = serializers.CharField(help_text='Введите пункт назначения',
+                                        max_length=50,
+                                        required=True)
+
+    class Meta(ActivityBaseSerializer.Meta):
+        fields = ActivityBaseSerializer.Meta.fields + ('origin', 'destination')
+
+
+class HotelSerializer(ActivityBaseSerializer):
+    """Сериализатор для вывода отелей."""
+    address = serializers.CharField(help_text='Укажите адрес',
+                                    max_length=255,
+                                    required=True)
+
+    class Meta(ActivityBaseSerializer.Meta):
+        fields = ActivityBaseSerializer.Meta.fields + ('address',)
+
+
+class ActivitySerializer(ActivityBaseSerializer):
+    """Сериализатор для вывода активностей."""
+    address = serializers.CharField(help_text='Укажите адрес',
+                                    max_length=255,
+                                    required=True)
+
+    class Meta(ActivityBaseSerializer.Meta):
+        fields = ActivityBaseSerializer.Meta.fields + ('address',)

@@ -12,11 +12,12 @@ from . import openapi
 from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
-from .serializers import (CitySerializer, TicketSerializer,
+from .permissions import IsAuthorOrAdmin
+from .serializers import (ActivitySerializer, CitySerializer, FlightSerializer,
+                          HotelSerializer, TicketSerializer,
                           TravelListSerializer, TravelSerializer)
-# noqa: I004, I001
 from tickets.models import City  # noqa: I001
-from travel_diary.models import Travel  # noqa: I001
+from travel_diary.models import Activity, Travel  # noqa: I001
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
@@ -95,6 +96,20 @@ class SearchTicketView(APIView):
         return Response(HTTPStatus.BAD_REQUEST)
 
 
+class TokenCreateView(DjTokenCreateView):
+    """Исправлена документация."""
+    @openapi.token_login
+    def post(self, request, **kwargs):
+        return super().post(request, **kwargs)
+
+
+class TokenDestroyView(DjTokenDestroyView):
+    """Исправлена документация."""
+    @openapi.token_destroy
+    def post(self, request):
+        return super().post(request)
+
+
 class TravelViewSet(viewsets.ModelViewSet):
     """ViewSet для получения путешествий."""
     serializer_class = TravelSerializer
@@ -109,15 +124,26 @@ class TravelViewSet(viewsets.ModelViewSet):
         serializer.save(traveler=self.request.user)
 
 
-class TokenCreateView(DjTokenCreateView):
-    """Исправлена документация."""
-    @openapi.token_login
-    def post(self, request, **kwargs):
-        return super().post(request, **kwargs)
+class ActivityBaseViewSet(viewsets.ModelViewSet):
+    """Базовый ViewSet для карточек."""
+    queryset = Activity.objects.all()
+    permission_classes = (IsAuthorOrAdmin,)
+
+    def perform_create(self, serializer):
+        """Переопределение метода perform_create."""
+        serializer.save(author=self.request.user)
 
 
-class TokenDestroyView(DjTokenDestroyView):
-    """Исправлена документация."""
-    @openapi.token_destroy
-    def post(self, request):
-        return super().post(request)
+class FlightViewSet(ActivityBaseViewSet):
+    """ViewSet для перелетов."""
+    serializer_class = FlightSerializer
+
+
+class HotelViewSet(ActivityBaseViewSet):
+    """ViewSet для отелей."""
+    serializer_class = HotelSerializer
+
+
+class ActivityViewSet(ActivityBaseViewSet):
+    """ViewSet для активностей."""
+    serializer_class = ActivitySerializer
