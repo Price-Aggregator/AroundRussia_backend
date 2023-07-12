@@ -11,7 +11,24 @@ from travel_diary.models import Activity, Travel
 
 from .constants import CATEGORIES
 
+from .constants import BLOCK_CITY
+
 User = get_user_model()
+
+
+class AirportField(serializers.Field):
+    """Поле для сериализатора.
+       Проверяет что все города сейчас доступны."""
+
+    def to_representation(self, value):
+        return value
+
+    def to_internal_value(self, data):
+        if data in BLOCK_CITY:
+            raise serializers.ValidationError(
+                'Извините, в данный момент аэропорт закрыт'
+            )
+        return data
 
 
 class CitySerializer(serializers.ModelSerializer):
@@ -29,9 +46,9 @@ class TicketSerializer(serializers.Serializer):
         max_length=10, help_text='Город отправления')
     destination = serializers.CharField(
         max_length=10, help_text='Город назначения')
-    origin_airport = serializers.CharField(
+    origin_airport = AirportField(
         max_length=10, help_text='Аэропорт отправления')
-    destination_airport = serializers.CharField(
+    destination_airport = AirportField(
         max_length=10, help_text='Аэропорт назначения')
     price = serializers.IntegerField(help_text='Цена')
     airline = serializers.CharField(max_length=10, help_text='Авиакомпания')
