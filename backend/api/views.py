@@ -7,6 +7,8 @@ from djoser.views import TokenDestroyView as DjTokenDestroyView
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from tickets.models import City  # noqa: I001
+from travel_diary.models import Activity, Travel  # noqa: I001
 
 from . import openapi
 from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
@@ -16,8 +18,6 @@ from .permissions import IsAuthorOrAdmin
 from .serializers import (ActivitySerializer, CitySerializer, FlightSerializer,
                           HotelSerializer, TicketSerializer,
                           TravelListSerializer, TravelSerializer)
-from tickets.models import City  # noqa: I001
-from travel_diary.models import Activity, Travel  # noqa: I001
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 

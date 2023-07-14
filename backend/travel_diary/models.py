@@ -1,7 +1,6 @@
-from django.db import models
-from django.contrib.auth import get_user_model
-
 from api.validators import validate_file_extension
+from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 

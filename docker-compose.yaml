@@ -11,11 +11,11 @@ services:
     image: redis:latest
     restart: always
 
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #   volumes:
-  #     - ./frontend_b:/app/result_build/
+  frontend:
+    build:
+      context: ./frontend
+    volumes:
+      - ./frontend_b:/app/result_build/
 
   backend:
     build:
@@ -47,12 +47,12 @@ services:
       - "80:80"
     volumes:
       - ./default.conf:/etc/nginx/conf.d/default.conf
-      # - ./frontend_b/build:/usr/share/nginx/html/
+      - ./frontend_b/build:/usr/share/nginx/html/
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:
       - backend
-      # - frontend
+      - frontend
     restart: always
 
 volumes:
