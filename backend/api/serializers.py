@@ -150,6 +150,8 @@ class ActivityListSerializer(serializers.ModelSerializer):
         if instance.category != 'flight':
             answer.pop('origin')
             answer.pop('destination')
+        else:
+            answer.pop('address')
         return answer
 
 
