@@ -2,9 +2,9 @@ import os
 from http import HTTPStatus
 
 import requests
-from djoser.views import (TokenCreateView as DjTokenCreateView,  # noqa: I001
-                          TokenDestroyView as DjTokenDestroyView)  # noqa: I001
-from rest_framework import filters, status, viewsets  # noqa: I005
+from djoser.views import TokenCreateView as DjTokenCreateView
+from djoser.views import TokenDestroyView as DjTokenDestroyView
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -24,7 +24,7 @@ from .validators import params_validation
 TOKEN = os.getenv('TOKEN')
 
 
-class CityViewSet(viewsets.ReadOnlyModelViewSet):
+class CityViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """ViewSet для получения городов."""
     serializer_class = CitySerializer
     queryset = City.objects.all()
