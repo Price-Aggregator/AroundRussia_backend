@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
 from djoser.serializers import UserSerializer as DjUserSerializer
-from rest_framework import serializers  # noqa: I004
+from rest_framework import serializers
 from tickets.models import City
 from travel_diary.models import Activity, Travel
 
@@ -14,7 +14,7 @@ from .constants import BLOCK_CITY, CATEGORIES
 User = get_user_model()
 
 
-class AirportField(serializers.Field):
+class AirportField(serializers.CharField):
     """Поле для сериализатора.
        Проверяет что все города сейчас доступны."""
 
@@ -136,15 +136,34 @@ class TravelListSerializer(serializers.ModelSerializer):
         fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
 
 
+class ActivityListSerializer(serializers.ModelSerializer):
+    """Сериализатор списочного представления активностей."""
+
+    class Meta:
+        model = Activity
+        fields = ('name', 'category', 'address', 'date',
+                  'time', 'price', 'media', 'origin', 'destination')
+
+    def to_representation(self, instance):
+        answer = (
+            super(ActivityListSerializer, self).to_representation(instance))
+        if instance.category != 'flight':
+            answer.pop('origin')
+            answer.pop('destination')
+        else:
+            answer.pop('address')
+        return answer
+
+
 class TravelSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода путешествия с активностями."""
     image = Base64ImageField(required=False, allow_null=True)
-    # activity = ActivitySerializer(many=True, source='travel')
+    activity = ActivityListSerializer(many=True, source='travel')
 
     class Meta:
         model = Travel
         fields = ('name', 'start_date', 'end_date', 'image', 'traveler',
-                  'travel')
+                  'travel', 'activity')
         read_only_fields = ('traveler', 'travel')
 
     def validate(self, data):
