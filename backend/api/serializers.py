@@ -106,6 +106,11 @@ class UserSerializer(DjUserCreateSerializer):
         fields = ('email', 'password')
         write_only_fields = ('password',)
 
+    def save(self, **kwargs):
+        username = self.validated_data.get('email')
+        kwargs['username'] = username
+        return super().save(**kwargs)
+
 
 class Base64ImageField(serializers.ImageField):
     """Кастомный тип поля для декодирования медиафайлов."""
