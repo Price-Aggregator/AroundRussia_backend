@@ -129,13 +129,6 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class TravelListSerializer(serializers.ModelSerializer):
-    """Сериализатор для вывода списка путешествий."""
-    class Meta:
-        model = Travel
-        fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
-
-
 class ActivityListSerializer(serializers.ModelSerializer):
     """Сериализатор списочного представления активностей."""
 
@@ -155,15 +148,25 @@ class ActivityListSerializer(serializers.ModelSerializer):
         return answer
 
 
-class TravelSerializer(serializers.ModelSerializer):
-    """Сериализатор для вывода путешествия с активностями."""
-    image = Base64ImageField(required=False, allow_null=True)
+class TravelListSerializer(serializers.ModelSerializer):
+    """Сериализатор для вывода списка путешествий."""
+
     activity = ActivityListSerializer(many=True, source='travel')
 
     class Meta:
         model = Travel
         fields = ('name', 'start_date', 'end_date', 'image', 'traveler',
-                  'travel', 'activity')
+                  'activity')
+
+
+class TravelSerializer(serializers.ModelSerializer):
+    """Сериализатор для вывода путешествия с активностями."""
+    image = Base64ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = Travel
+        fields = ('name', 'start_date', 'end_date', 'image', 'traveler',
+                  'travel')
         read_only_fields = ('traveler', 'travel')
 
     def validate(self, data):
@@ -174,7 +177,7 @@ class TravelSerializer(serializers.ModelSerializer):
         return data
 
 
-class ActivityBaseSerializer(serializers.ModelSerializer):
+class ActivitySerializer(serializers.ModelSerializer):
     """Базовый сериализатор для карточек."""
     author = serializers.PrimaryKeyRelatedField(read_only=True)
 
@@ -188,7 +191,10 @@ class ActivityBaseSerializer(serializers.ModelSerializer):
                   'date',
                   'time',
                   'price',
-                  'media')
+                  'media',
+                  'address',
+                  'origin',
+                  'destination')
 
     def validate(self, data):
         if data['category'] not in CATEGORIES:
@@ -204,37 +210,14 @@ class ActivityBaseSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Цена не может быть ниже 0.'
             )
+        if data['category'] == 'flight':
+            if 'origin' not in data or 'destination' not in data:
+                raise serializers.ValidationError(
+                    'Необходимо указать место отправления и назначения'
+                )
+        if data['category'] != 'flight':
+            if 'address' not in data:
+                raise serializers.ValidationError(
+                    'Необходимо указать адрес.'
+                )
         return data
-
-
-class FlightSerializer(ActivityBaseSerializer):
-    """Сериализатор для вывода перелетов."""
-    origin = serializers.CharField(help_text='Введите пункт отправления',
-                                   max_length=50,
-                                   required=True)
-    destination = serializers.CharField(help_text='Введите пункт назначения',
-                                        max_length=50,
-                                        required=True)
-
-    class Meta(ActivityBaseSerializer.Meta):
-        fields = ActivityBaseSerializer.Meta.fields + ('origin', 'destination')
-
-
-class HotelSerializer(ActivityBaseSerializer):
-    """Сериализатор для вывода отелей."""
-    address = serializers.CharField(help_text='Укажите адрес',
-                                    max_length=255,
-                                    required=True)
-
-    class Meta(ActivityBaseSerializer.Meta):
-        fields = ActivityBaseSerializer.Meta.fields + ('address',)
-
-
-class ActivitySerializer(ActivityBaseSerializer):
-    """Сериализатор для вывода активностей."""
-    address = serializers.CharField(help_text='Укажите адрес',
-                                    max_length=255,
-                                    required=True)
-
-    class Meta(ActivityBaseSerializer.Meta):
-        fields = ActivityBaseSerializer.Meta.fields + ('address',)
