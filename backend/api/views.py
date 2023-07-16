@@ -114,6 +114,7 @@ class TravelViewSet(viewsets.ModelViewSet):
     """ViewSet для получения путешествий."""
     serializer_class = TravelSerializer
     queryset = Travel.objects.all()
+    permission_classes = (IsAuthorOrAdmin,)
 
     def get_serializer_class(self):
         if self.action == 'list':

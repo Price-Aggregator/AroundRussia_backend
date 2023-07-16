@@ -6,6 +6,8 @@ from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
 from djoser.serializers import UserSerializer as DjUserSerializer
 from rest_framework import serializers
+from rest_framework.fields import SerializerMethodField
+
 from tickets.models import City
 from travel_diary.models import Activity, Travel
 
@@ -159,12 +161,16 @@ class TravelSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода путешествия с активностями."""
     image = Base64ImageField(required=False, allow_null=True)
     activity = ActivityListSerializer(many=True, source='travel')
+    sum_price = SerializerMethodField()
 
     class Meta:
         model = Travel
         fields = ('name', 'start_date', 'end_date', 'image', 'traveler',
-                  'travel', 'activity')
-        read_only_fields = ('traveler', 'travel')
+                  'activity', 'sum_price')
+        read_only_fields = ('traveler', 'activity')
+
+    def get_sum_price(self, obj):
+        pass
 
     def validate(self, data):
         if data['start_date'] >= data['end_date']:
