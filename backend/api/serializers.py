@@ -151,23 +151,20 @@ class ActivityListSerializer(serializers.ModelSerializer):
 class TravelListSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода списка путешествий."""
 
-    activity = ActivityListSerializer(many=True, source='travel')
-
     class Meta:
         model = Travel
-        fields = ('name', 'start_date', 'end_date', 'image', 'traveler',
-                  'activity')
+        fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
 
 
 class TravelSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода путешествия с активностями."""
     image = Base64ImageField(required=False, allow_null=True)
+    activity = ActivityListSerializer(many=True, source='travel')
 
     class Meta:
         model = Travel
-        fields = ('name', 'start_date', 'end_date', 'image', 'traveler',
-                  'travel')
-        read_only_fields = ('traveler', 'travel')
+        fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
+        read_only_fields = ('traveler',)
 
     def validate(self, data):
         if data['start_date'] >= data['end_date']:
@@ -175,6 +172,13 @@ class TravelSerializer(serializers.ModelSerializer):
                 'Дата окончания путешествия не может быть раньше даты начала!'
             )
         return data
+
+
+class TravelRetrieveSerializer(TravelSerializer):
+    activity = ActivityListSerializer(many=True, source='travel')
+
+    class Meta(TravelSerializer.Meta):
+        fields = TravelSerializer.Meta.fields + ('activity',)
 
 
 class ActivitySerializer(serializers.ModelSerializer):

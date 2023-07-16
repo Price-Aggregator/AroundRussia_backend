@@ -7,7 +7,6 @@ from djoser.views import TokenDestroyView as DjTokenDestroyView
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import SAFE_METHODS
 from tickets.models import City  # noqa: I001
 from travel_diary.models import Activity, Travel  # noqa: I001
 
@@ -17,20 +16,12 @@ from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .permissions import IsAuthorOrAdmin
 from .serializers import (ActivitySerializer, CitySerializer, TicketSerializer,
-                          TravelListSerializer, TravelSerializer)
+                          TravelListSerializer, TravelRetrieveSerializer,
+                          TravelSerializer)
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
 TOKEN = os.getenv('TOKEN')
-
-
-class CreateDestroyRetrieveUpdateViewSet(
-        mixins.CreateModelMixin, mixins.DestroyModelMixin,
-        mixins.UpdateModelMixin, mixins.RetrieveModelMixin,
-        viewsets.GenericViewSet):
-    """Mixin для Activity viewset"""
-
-    pass
 
 
 class CityViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -125,15 +116,19 @@ class TravelViewSet(viewsets.ModelViewSet):
     queryset = Travel.objects.all()
 
     def get_serializer_class(self):
-        if self.request.method in SAFE_METHODS:
+        if self.action == 'list':
             return TravelListSerializer
+        if self.action == 'retrieve':
+            return TravelRetrieveSerializer
         return TravelSerializer
 
     def perform_create(self, serializer):
         serializer.save(traveler=self.request.user)
 
 
-class ActivityViewSet(CreateDestroyRetrieveUpdateViewSet):
+class ActivityViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
+                      mixins.UpdateModelMixin, mixins.RetrieveModelMixin,
+                      viewsets.GenericViewSet):
     """Базовый ViewSet для карточек."""
     queryset = Activity.objects.all()
     permission_classes = (IsAuthorOrAdmin,)
