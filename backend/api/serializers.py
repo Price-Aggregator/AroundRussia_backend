@@ -159,7 +159,6 @@ class TravelListSerializer(serializers.ModelSerializer):
 class TravelSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода путешествия с активностями."""
     image = Base64ImageField(required=False, allow_null=True)
-    activity = ActivityListSerializer(many=True, source='travel')
 
     class Meta:
         model = Travel
