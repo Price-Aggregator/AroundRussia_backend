@@ -4,7 +4,6 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
-from djoser.serializers import UserSerializer as DjUserSerializer
 from rest_framework import serializers
 from tickets.models import City
 from travel_diary.models import Activity, Travel
@@ -100,21 +99,17 @@ class TicketRequestSerializer(serializers.Serializer):
     departure_at = serializers.CharField(help_text='Время отправления')
 
 
-class UserCreateSerializer(DjUserCreateSerializer):
+class UserSerializer(DjUserCreateSerializer):
     """Унаследовано от Djoser, добавлены поля."""
     class Meta:
         model = User
-        fields = ('username', 'password', 'email', 'first_name', 'last_name',
-                  'sex', 'phone_number', 'birth_date')
+        fields = ('email', 'password')
         write_only_fields = ('password',)
 
-
-class UserSerializer(DjUserSerializer):
-    """Унаследовано от Djoser, добавлены поля."""
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'sex',
-                  'phone_number', 'birth_date')
+    def save(self, **kwargs):
+        username = self.validated_data.get('email')
+        kwargs['username'] = username
+        return super().save(**kwargs)
 
 
 class Base64ImageField(serializers.ImageField):
