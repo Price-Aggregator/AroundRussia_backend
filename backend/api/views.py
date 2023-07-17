@@ -15,9 +15,9 @@ from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .permissions import IsAuthorOrAdmin
-from .serializers import (ActivitySerializer, CitySerializer, FlightSerializer,
-                          HotelSerializer, TicketSerializer,
-                          TravelListSerializer, TravelSerializer)
+from .serializers import (ActivitySerializer, CitySerializer, TicketSerializer,
+                          TravelListSerializer, TravelRetrieveSerializer,
+                          TravelSerializer)
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
@@ -118,32 +118,22 @@ class TravelViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'list':
             return TravelListSerializer
+        if self.action == 'retrieve':
+            return TravelRetrieveSerializer
         return TravelSerializer
 
     def perform_create(self, serializer):
         serializer.save(traveler=self.request.user)
 
 
-class ActivityBaseViewSet(viewsets.ModelViewSet):
+class ActivityViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
+                      mixins.UpdateModelMixin, mixins.RetrieveModelMixin,
+                      viewsets.GenericViewSet):
     """Базовый ViewSet для карточек."""
     queryset = Activity.objects.all()
     permission_classes = (IsAuthorOrAdmin,)
+    serializer_class = ActivitySerializer
 
     def perform_create(self, serializer):
         """Переопределение метода perform_create."""
         serializer.save(author=self.request.user)
-
-
-class FlightViewSet(ActivityBaseViewSet):
-    """ViewSet для перелетов."""
-    serializer_class = FlightSerializer
-
-
-class HotelViewSet(ActivityBaseViewSet):
-    """ViewSet для отелей."""
-    serializer_class = HotelSerializer
-
-
-class ActivityViewSet(ActivityBaseViewSet):
-    """ViewSet для активностей."""
-    serializer_class = ActivitySerializer
