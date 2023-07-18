@@ -2,6 +2,7 @@ import os
 from http import HTTPStatus
 
 import requests
+from django.db.models import Sum
 from djoser.views import TokenCreateView as DjTokenCreateView
 from djoser.views import TokenDestroyView as DjTokenDestroyView
 from rest_framework import filters, mixins, status, viewsets
@@ -16,8 +17,7 @@ from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .permissions import IsAuthorOrAdmin
 from .serializers import (ActivitySerializer, CitySerializer, TicketSerializer,
-                          TravelListSerializer, TravelRetrieveSerializer,
-                          TravelSerializer)
+                          TravelListSerializer, TravelSerializer)
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
@@ -110,16 +110,20 @@ class TokenDestroyView(DjTokenDestroyView):
         return super().post(request)
 
 
-class TravelViewSet(viewsets.ModelViewSet):
+class TravelViewSet(mixins.CreateModelMixin,
+                    mixins.DestroyModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.ListModelMixin,
+                    viewsets.GenericViewSet):
     """ViewSet для получения путешествий."""
     serializer_class = TravelSerializer
-    queryset = Travel.objects.all()
+    queryset = Travel.objects.all().annotate(
+        total_price=Sum('activities__price')
+    )
 
     def get_serializer_class(self):
         if self.action == 'list':
             return TravelListSerializer
-        if self.action == 'retrieve':
-            return TravelRetrieveSerializer
         return TravelSerializer
 
     def perform_create(self, serializer):

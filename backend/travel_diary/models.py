@@ -7,10 +7,17 @@ User = get_user_model()
 
 class Travel(models.Model):
     name = models.CharField(
-        'Наименование путешествия',
-        max_length=200,
+        'Название путешествия',
+        max_length=100,
         unique=True,
-        help_text='Укажите наименование путешествия'
+        help_text='Укажите название путешествия'
+    )
+    description = models.CharField(
+        'Описание путешествия',
+        max_length=2000,
+        null=True,
+        blank=True,
+        help_text='Укажите описание путешествия'
     )
     start_date = models.DateField(
         'Дата начала путешествия',
@@ -45,10 +52,10 @@ class Activity(models.Model):
     """Модель активностей."""
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE,
-                               related_name='author')
+                               related_name='activities')
     travel = models.ForeignKey(Travel,
                                on_delete=models.CASCADE,
-                               related_name='travel')
+                               related_name='activities')
     name = models.CharField(verbose_name='Название события',
                             help_text='Введите название',
                             max_length=255,)
@@ -70,10 +77,10 @@ class Activity(models.Model):
                                    max_length=255,
                                    null=True,
                                    blank=True)
-    price = models.IntegerField(verbose_name='Цена',
-                                help_text='Введите цену',
-                                null=True,
-                                blank=True)
+    price = models.FloatField(verbose_name='Цена',
+                              help_text='Введите цену',
+                              null=True,
+                              blank=True)
     media = models.FileField(upload_to='files/',
                              verbose_name='Файл',
                              help_text='Загрузите файл',

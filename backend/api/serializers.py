@@ -112,18 +112,6 @@ class UserSerializer(DjUserCreateSerializer):
         return super().save(**kwargs)
 
 
-class Base64ImageField(serializers.ImageField):
-    """Кастомный тип поля для декодирования медиафайлов."""
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format_file, image_str = data.split(';base64,')
-            extension = format_file.split('/')[-1]
-            data = ContentFile(
-                base64.b64decode(image_str), name='temp.' + extension
-            )
-        return super().to_internal_value(data)
-
-
 class ActivityListSerializer(serializers.ModelSerializer):
     """Сериализатор списочного представления активностей."""
 
@@ -143,22 +131,25 @@ class ActivityListSerializer(serializers.ModelSerializer):
         return answer
 
 
-class TravelListSerializer(serializers.ModelSerializer):
-    """Сериализатор для вывода списка путешествий."""
-
-    class Meta:
-        model = Travel
-        fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
+class Base64ImageField(serializers.ImageField):
+    """Кастомный тип поля для декодирования медиафайлов."""
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            format_file, image_str = data.split(';base64,')
+            extension = format_file.split('/')[-1]
+            data = ContentFile(
+                base64.b64decode(image_str), name='temp.' + extension
+            )
+        return super().to_internal_value(data)
 
 
 class TravelSerializer(serializers.ModelSerializer):
-    """Сериализатор для вывода путешествия с активностями."""
-    image = Base64ImageField(required=False, allow_null=True)
+    """Базовый сериализатор для путешествий."""
+    images = serializers.ListField(child=Base64ImageField())
 
     class Meta:
         model = Travel
-        fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
-        read_only_fields = ('traveler',)
+        fields = ('name', 'description', 'start_date', 'end_date', 'images')
 
     def validate(self, data):
         if data['start_date'] >= data['end_date']:
@@ -168,11 +159,13 @@ class TravelSerializer(serializers.ModelSerializer):
         return data
 
 
-class TravelRetrieveSerializer(TravelSerializer):
-    activity = ActivityListSerializer(many=True, source='travel')
+class TravelListSerializer(TravelSerializer):
+    """Сериализатор для вывода списка путешествий с активностями."""
+    activities = ActivityListSerializer(many=True)
+    total_price = serializers.FloatField()
 
     class Meta(TravelSerializer.Meta):
-        fields = TravelSerializer.Meta.fields + ('activity',)
+        fields = TravelSerializer.Meta.fields + ('activities', 'total_price')
 
 
 class ActivitySerializer(serializers.ModelSerializer):
