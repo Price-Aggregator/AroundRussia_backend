@@ -6,13 +6,17 @@ from calendar import monthrange
 import requests
 from django.core.cache import cache
 from django.utils import timezone
+from rest_framework.request import Request
 
 from .constants import (CACHE_TTL, MONTH_SLICE, PERIOD, PERIOD_MAX,
-                        PERIOD_SLICE, URL_AVIASALES, URL_CALENDAR, WEEK)
+                        PERIOD_SLICE, URL_AVIASALES, URL_CALENDAR, WEEK,
+                        AviaSalesData, Prices, Ticket)
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 
 
-def get_calendar_prices(origin, destination, date, return_at=''):
+def get_calendar_prices(
+    origin: str, destination: str, date: str, return_at: str = ''
+) -> Prices:
     """Утилита для получения цен для календаря."""
     headers = {'X-Access-Token': os.environ.get('TOKEN')}
     request_url = (f'{URL_CALENDAR}?'
@@ -44,12 +48,12 @@ def get_calendar_prices(origin, destination, date, return_at=''):
     return price
 
 
-def get_calendar_days(request):
+def get_calendar_days(request: Request) -> Prices | None:
     """Утилита для получения дней для календаря."""
-    date = request.GET.get('departure_at')
+    date = request.query_params.get('departure_at')
     date_now = timezone.datetime.now().date()
     date_req = timezone.datetime.strptime(date, '%Y-%m-%d').date()
-    return_at = request.GET.get('return_at', default='')
+    return_at = request.query_params.get('return_at', default='')
     if date_req < date_now:
         raise InvalidDateError('Дата не может быть раньше текущего числа')
     if return_at:
@@ -69,11 +73,13 @@ def get_calendar_days(request):
     return calendar_dry(request, date_now, date_req)
 
 
-def calendar_dry(request, date_now, date_req, return_at=''):
+def calendar_dry(
+    request: Request, date_now: dt.date, date_req: dt.date, return_at: str = ''
+) -> Prices:
     """Утилита для обработки месяцев в календаре."""
-    date = request.GET.get('departure_at')
-    origin = request.GET.get('origin')
-    destination = request.GET.get('destination')
+    date = request.query_params.get('departure_at')
+    origin = request.query_params.get('origin')
+    destination = request.query_params.get('destination')
     period = timezone.timedelta(days=PERIOD)
     date_future = date_req + period
     date_previous = date_req - period
@@ -108,7 +114,8 @@ def calendar_dry(request, date_now, date_req, return_at=''):
     return current_month[day: day + PERIOD]
 
 
-def get_current_month(origin, destination, date, return_at):
+def get_current_month(
+        origin: str, destination: str, date: str, return_at: str) -> Prices:
     """Утилита для обработки месяца даты отправления."""
     date_month = date[0:MONTH_SLICE]
     if return_at:
@@ -125,7 +132,7 @@ def get_current_month(origin, destination, date, return_at):
     return data
 
 
-def lazy_cycling(obj):
+def lazy_cycling(obj: AviaSalesData) -> AviaSalesData:
     """Утилита ленивого цикла для получения билетов."""
     for ticket in obj['data']:
         add_arrival_time(ticket)
@@ -134,7 +141,7 @@ def lazy_cycling(obj):
     return obj
 
 
-def add_arrival_time(ticket):
+def add_arrival_time(ticket: Ticket) -> None:
     """Утилита для добавления времени прибытия."""
     departure_time = dt.datetime.fromisoformat(ticket['departure_at'])
     way = dt.timedelta(minutes=ticket['duration_to'])
@@ -142,17 +149,17 @@ def add_arrival_time(ticket):
     ticket['arrival_time'] = arrival_time
 
 
-def add_url(ticket):
+def add_url(ticket: Ticket) -> None:
     """Утилита для добавления ссылки к билету."""
     ticket['link'] = URL_AVIASALES + ticket['link']
 
 
-def add_id(ticket):
+def add_id(ticket: Ticket) -> None:
     """Утилита длоя добавления id к билету."""
     ticket['id'] = re.search('uuid=(.*?)(?=&)', ticket['link']).group(1)
 
 
-def get_from_cache(url):
+def get_from_cache(url: str) -> Prices | None:
     """
     Проверяет url на вхождение в кэш.
     Возвращает json-результат из кэша если найдет.
@@ -161,7 +168,7 @@ def get_from_cache(url):
     return cache.get(url, default=None)
 
 
-def set_the_cache(url, result):
+def set_the_cache(url: str, result: Prices) -> None:
     """
     Принимает в параметрах url и результат запроса на этот урл - json-строку.
     Записывает результат в кэш по ключу - url.
