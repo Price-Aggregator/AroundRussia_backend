@@ -1,4 +1,4 @@
-from .constants import AviaSalesData
+from .types import AviaSalesData
 
 
 def sort_by_time(sorted_obj: AviaSalesData) -> AviaSalesData:

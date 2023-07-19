@@ -9,9 +9,9 @@ from django.utils import timezone
 from rest_framework.request import Request
 
 from .constants import (CACHE_TTL, MONTH_SLICE, PERIOD, PERIOD_MAX,
-                        PERIOD_SLICE, URL_AVIASALES, URL_CALENDAR, WEEK,
-                        AviaSalesData, Prices, Ticket)
+                        PERIOD_SLICE, URL_AVIASALES, URL_CALENDAR, WEEK)
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
+from .types import AviaSalesData, Prices, Ticket
 
 
 def get_calendar_prices(
