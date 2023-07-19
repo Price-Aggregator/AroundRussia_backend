@@ -78,5 +78,9 @@ jobs:
              echo HOST=${{ secrets.HOST }} >> .env
              echo TOKEN=${{ secrets.AVIA_TOKEN }} >> .env
              echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
+             echo EMAIL_HOST=${{ secrets.EMAIL_HOST }} >> .env
+             echo EMAIL_USER=${{ secrets.EMAIL_USER }} >> .env
+             echo EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }} >> .env
+             echo EMAIL_PORT=${{ secrets.EMAIL_PORT }} >> .env
              sudo docker-compose up -d
              sudo docker image prune
