@@ -8,7 +8,7 @@ from rest_framework import serializers
 from tickets.models import City
 from travel_diary.models import Activity, Travel
 
-from .constants import BLOCK_CITY, CATEGORIES
+from .constants import BLOCK_CITY, CATEGORIES, MAX_IMAGES_PER_TRAVEL
 
 User = get_user_model()
 
@@ -145,7 +145,9 @@ class Base64ImageField(serializers.ImageField):
 
 class TravelSerializer(serializers.ModelSerializer):
     """Базовый сериализатор для путешествий."""
-    images = serializers.ListField(child=Base64ImageField())
+    images = serializers.ListField(child=Base64ImageField(),
+                                   allow_empty=True,
+                                   max_length=MAX_IMAGES_PER_TRAVEL)
 
     class Meta:
         model = Travel

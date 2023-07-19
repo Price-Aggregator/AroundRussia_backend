@@ -27,11 +27,6 @@ class Travel(models.Model):
         'Дата окончания путешествия',
         help_text='Укажите дату окончания путешествия'
     )
-    image = models.ImageField(
-        upload_to='travel_diary/images/',
-        null=True,
-        default=None
-    )
     traveler = models.ForeignKey(
         User,
         verbose_name='Путешественник',
@@ -46,6 +41,21 @@ class Travel(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Image(models.Model):
+    image = models.ImageField(upload_to='travel_diary/images/')
+    travel = models.ForeignKey(
+        Travel,
+        verbose_name='Путешествие',
+        on_delete=models.CASCADE,
+        related_name='images',
+    )
+
+    class Meta:
+        ordering = ('travel',)
+        verbose_name = 'Изображение'
+        verbose_name_plural = 'Изображения'
 
 
 class Activity(models.Model):

@@ -48,3 +48,6 @@ BLOCK_CITY: Final[set[str]] = {'AAQ', 'EGO', 'BZK', 'VOZ', 'GDZ', 'KRR',
 
 CATEGORIES: Final[set[str]] = {'activity', 'flight', 'hotel'}
 """Допустимые категории активностей."""
+
+MAX_IMAGES_PER_TRAVEL: Final[int] = 20
+"""Максимальное количество изображений для одного путешествия."""
