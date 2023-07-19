@@ -117,7 +117,7 @@ class ActivityListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Activity
-        fields = ('name', 'category', 'address', 'date',
+        fields = ('id', 'name', 'category', 'address', 'date',
                   'time', 'price', 'media', 'origin', 'destination')
 
     def to_representation(self, instance: Activity) -> dict:
@@ -151,7 +151,7 @@ class TravelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Travel
-        fields = ('name', 'description', 'start_date', 'end_date', 'images')
+        fields = ('id', 'name', 'description', 'start_date', 'end_date', 'images')
 
     def validate(self, data: dict) -> dict | None:
         if data['start_date'] >= data['end_date']:
