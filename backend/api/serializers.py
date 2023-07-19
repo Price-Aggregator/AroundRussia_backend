@@ -17,10 +17,10 @@ class AirportField(serializers.CharField):
     """Поле для сериализатора.
        Проверяет что все города сейчас доступны."""
 
-    def to_representation(self, value):
+    def to_representation(self, value: str) -> str:
         return value
 
-    def to_internal_value(self, data):
+    def to_internal_value(self, data: str) -> str | None:
         if data in BLOCK_CITY:
             raise serializers.ValidationError(
                 'Извините, в данный момент аэропорт закрыт'
@@ -106,7 +106,7 @@ class UserSerializer(DjUserCreateSerializer):
         fields = ('email', 'password')
         write_only_fields = ('password',)
 
-    def save(self, **kwargs):
+    def save(self, **kwargs) -> User:
         username = self.validated_data.get('email')
         kwargs['username'] = username
         return super().save(**kwargs)
@@ -132,7 +132,7 @@ class ActivityListSerializer(serializers.ModelSerializer):
         fields = ('name', 'category', 'address', 'date',
                   'time', 'price', 'media', 'origin', 'destination')
 
-    def to_representation(self, instance):
+    def to_representation(self, instance: Activity) -> dict:
         answer = (
             super(ActivityListSerializer, self).to_representation(instance))
         if instance.category != 'flight':
@@ -160,7 +160,7 @@ class TravelSerializer(serializers.ModelSerializer):
         fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
         read_only_fields = ('traveler',)
 
-    def validate(self, data):
+    def validate(self, data: dict) -> dict | None:
         if data['start_date'] >= data['end_date']:
             raise serializers.ValidationError(
                 'Дата окончания путешествия не может быть раньше даты начала!'
@@ -194,7 +194,7 @@ class ActivitySerializer(serializers.ModelSerializer):
                   'origin',
                   'destination')
 
-    def validate(self, data):
+    def validate(self, data: dict) -> dict | None:
         if data['category'] not in CATEGORIES:
             raise serializers.ValidationError(
                 f'Допустимые категории {CATEGORIES}'
