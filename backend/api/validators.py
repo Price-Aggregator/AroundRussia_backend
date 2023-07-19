@@ -4,7 +4,7 @@ from datetime import datetime
 from django.core.exceptions import ValidationError
 
 
-def params_validation(params):  # noqa
+def params_validation(params) -> bool:  # noqa
     """Валидация вводимых пользователем данных."""
 
     if 'origin' not in params and 'destination' not in params:
@@ -47,7 +47,7 @@ def params_validation(params):  # noqa
     return True
 
 
-def validate_file_extension(value):  # noqa
+def validate_file_extension(value) -> None:  # noqa
     """Валидация типа файла."""
     ext = os.path.splitext(value.name)[1]
     valid_extensions = ['.pdf']

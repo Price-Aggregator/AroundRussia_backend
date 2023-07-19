@@ -42,9 +42,9 @@ PERIOD: Final[int] = 15
 PERIOD_SLICE: Final[int] = 8
 """Количество дней до/после запрашиваемой даты включительно."""
 
-BLOCK_CITY = {'AAQ', 'EGO', 'BZK', 'VOZ', 'GDZ', 'KRR', 'URS', 'LPK', 'URS',
-              'ROV', 'ESL', 'SIP'}
+BLOCK_CITY: Final[set[str]] = {'AAQ', 'EGO', 'BZK', 'VOZ', 'GDZ', 'KRR',
+                               'URS', 'LPK', 'ROV', 'ESL', 'SIP'}
 """Города закрытые из-за СВО."""
 
-CATEGORIES = {'activity', 'flight', 'hotel'}
+CATEGORIES: Final[set[str]] = {'activity', 'flight', 'hotel'}
 """Допустимые категории активностей."""
