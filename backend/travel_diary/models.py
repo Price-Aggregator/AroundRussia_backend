@@ -57,6 +57,9 @@ class Image(models.Model):
         verbose_name = 'Изображение'
         verbose_name_plural = 'Изображения'
 
+    def __str__(self):
+        return self.image
+
 
 class Activity(models.Model):
     """Модель активностей."""
@@ -68,7 +71,7 @@ class Activity(models.Model):
                                related_name='activities')
     name = models.CharField(verbose_name='Название события',
                             help_text='Введите название',
-                            max_length=255,)
+                            max_length=255)
     category = models.CharField(verbose_name='Категория события',
                                 help_text='Выберите категорию',
                                 max_length=50)
@@ -87,10 +90,12 @@ class Activity(models.Model):
                                    max_length=255,
                                    null=True,
                                    blank=True)
-    price = models.FloatField(verbose_name='Цена',
-                              help_text='Введите цену',
-                              null=True,
-                              blank=True)
+    price = models.DecimalField(verbose_name='Цена',
+                                help_text='Введите цену',
+                                max_digits=10,
+                                decimal_places=2,
+                                null=True,
+                                blank=True)
     media = models.FileField(upload_to='files/',
                              verbose_name='Файл',
                              help_text='Загрузите файл',

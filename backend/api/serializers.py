@@ -4,11 +4,12 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from tickets.models import City
-from travel_diary.models import Activity, Travel
+from travel_diary.models import Activity, Image, Travel
 
-from .constants import BLOCK_CITY, CATEGORIES, MAX_IMAGES_PER_TRAVEL
+from .constants import BLOCK_CITY, CATEGORIES
 
 User = get_user_model()
 
@@ -143,15 +144,23 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
+class ImageSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
+    class Meta:
+        model = Image
+        fields = ('image', )
+
+    def to_representation(self, instance) -> str:
+        return super().to_representation(instance)['image']
+
+
 class TravelSerializer(serializers.ModelSerializer):
     """Базовый сериализатор для путешествий."""
-    images = serializers.ListField(child=Base64ImageField(),
-                                   allow_empty=True,
-                                   max_length=MAX_IMAGES_PER_TRAVEL)
 
     class Meta:
         model = Travel
-        fields = ('id', 'name', 'description', 'start_date', 'end_date', 'images')
+        fields = ('id', 'name', 'description', 'start_date', 'end_date')
 
     def validate(self, data: dict) -> dict | None:
         if data['start_date'] >= data['end_date']:
@@ -163,11 +172,19 @@ class TravelSerializer(serializers.ModelSerializer):
 
 class TravelListSerializer(TravelSerializer):
     """Сериализатор для вывода списка путешествий с активностями."""
+
     activities = ActivityListSerializer(many=True)
     total_price = serializers.FloatField()
+    images = serializers.SerializerMethodField()
+
+    @extend_schema_field(list[str])
+    def get_images(self, object):
+        return [str(image.image) for image in object.images.all()]
 
     class Meta(TravelSerializer.Meta):
-        fields = TravelSerializer.Meta.fields + ('activities', 'total_price')
+        fields = TravelSerializer.Meta.fields + ('images',
+                                                 'activities',
+                                                 'total_price')
 
 
 class ActivitySerializer(serializers.ModelSerializer):
