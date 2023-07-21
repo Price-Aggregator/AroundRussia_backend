@@ -4,11 +4,12 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from tickets.models import City
-from travel_diary.models import Activity, Travel
+from travel_diary.models import Activity, Image, Media, Travel
 
-from .constants import BLOCK_CITY, CATEGORIES
+from .constants import BLOCK_CITY, CATEGORIES, MEDIA_FORMATS
 
 User = get_user_model()
 
@@ -112,24 +113,12 @@ class UserSerializer(DjUserCreateSerializer):
         return super().save(**kwargs)
 
 
-class Base64ImageField(serializers.ImageField):
-    """Кастомный тип поля для декодирования медиафайлов."""
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format_file, image_str = data.split(';base64,')
-            extension = format_file.split('/')[-1]
-            data = ContentFile(
-                base64.b64decode(image_str), name='temp.' + extension
-            )
-        return super().to_internal_value(data)
-
-
 class ActivityListSerializer(serializers.ModelSerializer):
     """Сериализатор списочного представления активностей."""
 
     class Meta:
         model = Activity
-        fields = ('name', 'category', 'address', 'date',
+        fields = ('id', 'name', 'category', 'address', 'date',
                   'time', 'price', 'media', 'origin', 'destination')
 
     def to_representation(self, instance: Activity) -> dict:
@@ -143,22 +132,28 @@ class ActivityListSerializer(serializers.ModelSerializer):
         return answer
 
 
-class TravelListSerializer(serializers.ModelSerializer):
-    """Сериализатор для вывода списка путешествий."""
-
-    class Meta:
-        model = Travel
-        fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
+class Base64ImageField(serializers.ImageField):
+    """Кастомный тип поля для декодирования медиафайлов."""
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            format_file, image_str = data.split(';base64,')
+            extension = format_file.split('/')[-1]
+            if extension not in MEDIA_FORMATS:
+                raise serializers.ValidationError(
+                    'Не поддерживаемый медиа-формат! '
+                    'Разрешены следующие форматы: jpg, jpeg, png, svg.'
+                )
+            return ContentFile(
+                base64.b64decode(image_str), name='temp.' + extension
+            )
 
 
 class TravelSerializer(serializers.ModelSerializer):
-    """Сериализатор для вывода путешествия с активностями."""
-    image = Base64ImageField(required=False, allow_null=True)
+    """Базовый сериализатор для путешествий."""
 
     class Meta:
         model = Travel
-        fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
-        read_only_fields = ('traveler',)
+        fields = ('id', 'name', 'description', 'start_date', 'end_date')
 
     def validate(self, data: dict) -> dict | None:
         if data['start_date'] >= data['end_date']:
@@ -168,16 +163,50 @@ class TravelSerializer(serializers.ModelSerializer):
         return data
 
 
-class TravelRetrieveSerializer(TravelSerializer):
-    activity = ActivityListSerializer(many=True, source='travel')
+class TravelPostSerializer(TravelSerializer):
+    """Сериализатор для создания путешествия."""
+    images = serializers.ListField(
+        child=Base64ImageField(), allow_empty=True, write_only=True)
 
     class Meta(TravelSerializer.Meta):
-        fields = TravelSerializer.Meta.fields + ('activity',)
+        fields = TravelSerializer.Meta.fields + ('images',)
+
+    def create(self, validated_data):
+        images = validated_data.pop('images')
+        travel = Travel.objects.create(**validated_data)
+        for image in images:
+            Image.objects.get_or_create(image=image, travel=travel)
+        return travel
 
 
-class ActivitySerializer(serializers.ModelSerializer):
-    """Базовый сериализатор для карточек."""
-    author = serializers.PrimaryKeyRelatedField(read_only=True)
+class TravelListSerializer(TravelSerializer):
+    """Сериализатор для вывода списка путешествий с активностями."""
+
+    activities = ActivityListSerializer(many=True)
+    total_price = serializers.FloatField()
+    images = serializers.SerializerMethodField()
+
+    @extend_schema_field(list[str])
+    def get_images(self, object):
+        return [str(image.image) for image in object.images.all()]
+
+    class Meta(TravelSerializer.Meta):
+        fields = TravelSerializer.Meta.fields + ('images',
+                                                 'activities',
+                                                 'total_price')
+
+
+class ActivityMediaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Media
+        fields = ('media',)
+
+
+class ActivityPostSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания активности."""
+    medias = serializers.ListField(
+        child=ActivityMediaSerializer(), allow_empty=True, write_only=True)
 
     class Meta:
         model = Activity
@@ -189,7 +218,46 @@ class ActivitySerializer(serializers.ModelSerializer):
                   'date',
                   'time',
                   'price',
-                  'media',
+                  'medias',
+                  'address',
+                  'origin',
+                  'destination')
+
+    def add_medias(self, medias, activity):
+        Media.objects.bulk_create(
+            [Media(
+                media=media,
+                activity=activity
+            ) for media in medias]
+        )
+
+    def create(self, validated_data):
+        medias = validated_data.pop('medias')
+        activity = Activity.objects.create(**validated_data)
+        self.add_medias(medias, activity)
+        return activity
+
+
+class ActivitySerializer(serializers.ModelSerializer):
+    """Базовый сериализатор для карточек."""
+    author = serializers.PrimaryKeyRelatedField(read_only=True)
+    medias = serializers.SerializerMethodField()
+
+    @extend_schema_field(list[str])
+    def get_medias(self, object):
+        return [str(media.media) for media in object.medias.all()]
+
+    class Meta:
+        model = Activity
+        fields = ('author',
+                  'travel',
+                  'id',
+                  'name',
+                  'category',
+                  'date',
+                  'time',
+                  'price',
+                  'medias',
                   'address',
                   'origin',
                   'destination')

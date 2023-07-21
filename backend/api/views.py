@@ -2,9 +2,10 @@ import os
 from http import HTTPStatus
 
 import requests
+from django.db.models import Sum
 from djoser.views import TokenCreateView as DjTokenCreateView
 from djoser.views import TokenDestroyView as DjTokenDestroyView
-from rest_framework import filters, mixins, status, viewsets
+from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
@@ -17,9 +18,10 @@ from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .permissions import IsAuthorOrAdmin
-from .serializers import (ActivitySerializer, CitySerializer, TicketSerializer,
-                          TravelListSerializer, TravelRetrieveSerializer,
-                          TravelSerializer)
+from .serializers import (ActivitySerializer, ActivityPostSerializer,
+                          ActivityListSerializer, CitySerializer,
+                          TicketSerializer, TravelListSerializer,
+                          TravelPostSerializer, TravelSerializer)
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
@@ -113,16 +115,23 @@ class TokenDestroyView(DjTokenDestroyView):
         return super().post(request)
 
 
-class TravelViewSet(viewsets.ModelViewSet):
+class TravelViewSet(mixins.CreateModelMixin,
+                    mixins.DestroyModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.ListModelMixin,
+                    viewsets.GenericViewSet):
     """ViewSet для получения путешествий."""
-    serializer_class = TravelSerializer
-    queryset = Travel.objects.all()
+    queryset = Travel.objects.all().annotate(
+        total_price=Sum('activities__price')
+    )
+    permission_classes = (permissions.IsAuthenticated,)
 
     def get_serializer_class(self) -> Serializer:
-        if self.action == 'list':
-            return TravelListSerializer
-        if self.action == 'retrieve':
-            return TravelRetrieveSerializer
+        match self.action:
+            case 'list':
+                return TravelListSerializer
+            case 'create':
+                return TravelPostSerializer
         return TravelSerializer
 
     def perform_create(self, serializer: Serializer) -> None:
@@ -136,6 +145,14 @@ class ActivityViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
     queryset = Activity.objects.all()
     permission_classes = (IsAuthorOrAdmin,)
     serializer_class = ActivitySerializer
+
+    def get_serializer_class(self) -> Serializer:
+        match self.action:
+            case 'list':
+                return ActivityListSerializer
+            case 'create':
+                return ActivityPostSerializer
+        return ActivitySerializer
 
     def perform_create(self, serializer: Serializer) -> None:
         """Переопределение метода perform_create."""
