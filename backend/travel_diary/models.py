@@ -112,14 +112,6 @@ class Activity(models.Model):
         null=True,
         blank=True
     )
-    media = models.FileField(
-        upload_to='files/',
-        verbose_name='Файл',
-        help_text='Загрузите файл',
-        validators=[validate_file_extension],
-        null=True,
-        blank=True
-    )
     origin = models.CharField(
         verbose_name='Откуда',
         help_text='Введите пункт отправления',
@@ -147,9 +139,7 @@ class Media(models.Model):
         upload_to='files/',
         verbose_name='Файл',
         help_text='Загрузите файл',
-        validators=[validate_file_extension],
-        null=True,
-        blank=True
+        validators=[validate_file_extension]
     )
     activity = models.ForeignKey(
         Activity,
@@ -164,4 +154,4 @@ class Media(models.Model):
         verbose_name_plural = 'Медиа файлы'
 
     def __str__(self):
-        return self.media
+        return str(self.media)

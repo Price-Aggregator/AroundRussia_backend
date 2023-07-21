@@ -147,12 +147,11 @@ class ActivityViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
     serializer_class = ActivitySerializer
 
     def get_serializer_class(self) -> Serializer:
-        match self.action:
-            case 'list':
-                return ActivityListSerializer
-            case 'create':
-                return ActivityPostSerializer
-        return ActivitySerializer
+        if self.action == 'list':
+            return ActivityListSerializer
+        if self.action == 'create':
+            return ActivityPostSerializer
+        return ActivityListSerializer
 
     def perform_create(self, serializer: Serializer) -> None:
         """Переопределение метода perform_create."""

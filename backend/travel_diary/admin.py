@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Activity, Travel
+from .models import Activity, Media, Travel
 
 
 @admin.register(Travel)
@@ -11,4 +11,4 @@ class TravelAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
-admin.site.register(Activity)
+admin.site.register([Activity, Media])
