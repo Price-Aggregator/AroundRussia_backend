@@ -138,10 +138,14 @@ class Base64ImageField(serializers.ImageField):
         if isinstance(data, str) and data.startswith('data:image'):
             format_file, image_str = data.split(';base64,')
             extension = format_file.split('/')[-1]
-            if extension in MEDIA_FORMATS:
-                return ContentFile(
-                    base64.b64decode(image_str), name='temp.' + extension
+            if extension not in MEDIA_FORMATS:
+                raise serializers.ValidationError(
+                    'Не поддерживаемый медиа-формат! '
+                    'Разрешены следующие форматы: jpg, jpeg, png, svg.'
                 )
+            return ContentFile(
+                base64.b64decode(image_str), name='temp.' + extension
+            )
 
 
 class TravelSerializer(serializers.ModelSerializer):
