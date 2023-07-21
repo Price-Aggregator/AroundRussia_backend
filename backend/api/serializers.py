@@ -9,7 +9,7 @@ from rest_framework import serializers
 from tickets.models import City
 from travel_diary.models import Activity, Image, Travel
 
-from .constants import BLOCK_CITY, CATEGORIES
+from .constants import BLOCK_CITY, CATEGORIES, MEDIA_FORMATS
 
 User = get_user_model()
 
@@ -138,21 +138,10 @@ class Base64ImageField(serializers.ImageField):
         if isinstance(data, str) and data.startswith('data:image'):
             format_file, image_str = data.split(';base64,')
             extension = format_file.split('/')[-1]
-            data = ContentFile(
-                base64.b64decode(image_str), name='temp.' + extension
-            )
-        return super().to_internal_value(data)
-
-
-class ImageSerializer(serializers.ModelSerializer):
-    image = Base64ImageField()
-
-    class Meta:
-        model = Image
-        fields = ('image', )
-
-    def to_representation(self, instance) -> str:
-        return super().to_representation(instance)['image']
+            if extension in MEDIA_FORMATS:
+                return ContentFile(
+                    base64.b64decode(image_str), name='temp.' + extension
+                )
 
 
 class TravelSerializer(serializers.ModelSerializer):
@@ -168,6 +157,22 @@ class TravelSerializer(serializers.ModelSerializer):
                 'Дата окончания путешествия не может быть раньше даты начала!'
             )
         return data
+
+
+class TravelPostSerializer(TravelSerializer):
+    """Сериализатор для создания путешествия."""
+    images = serializers.ListField(
+        child=Base64ImageField(), allow_empty=True, write_only=True)
+
+    class Meta(TravelSerializer.Meta):
+        fields = TravelSerializer.Meta.fields + ('images',)
+
+    def create(self, validated_data):
+        images = validated_data.pop('images')
+        travel = Travel.objects.create(**validated_data)
+        for image in images:
+            Image.objects.get_or_create(image=image, travel=travel)
+        return travel
 
 
 class TravelListSerializer(TravelSerializer):

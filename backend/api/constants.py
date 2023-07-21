@@ -51,3 +51,6 @@ CATEGORIES: Final[set[str]] = {'activity', 'flight', 'hotel'}
 
 MAX_IMAGES_PER_TRAVEL: Final[int] = 20
 """Максимальное количество изображений для одного путешествия."""
+
+MEDIA_FORMATS = ('jpeg', 'jpg', 'png', 'svg')
+"""Разрешенные медиа-форматы."""
