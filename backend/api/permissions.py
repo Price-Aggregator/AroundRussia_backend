@@ -9,5 +9,7 @@ class IsAuthorOrAdmin(BasePermission):
         return request.user.is_authenticated
 
     def has_object_permission(self, request: Request, view, obj) -> bool:
-        return (request.user == obj.author
-                or request.user.is_admin)
+        author = obj.traveler if hasattr(obj, 'traveler') else obj.author
+        return (request.user == author
+                or request.user.is_staff
+                or request.user.is_superuser)

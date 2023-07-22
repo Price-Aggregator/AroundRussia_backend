@@ -1,15 +1,15 @@
-import base64
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
-from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from tickets.models import City
 from travel_diary.models import Activity, Image, Travel
 
-from .constants import BLOCK_CITY, CATEGORIES, MEDIA_FORMATS
+from .constants import BLOCK_CITY, CATEGORIES
+from .fields import Base64ImageField
+from .validators import travel_dates_validator
 
 User = get_user_model()
 
@@ -132,22 +132,6 @@ class ActivityListSerializer(serializers.ModelSerializer):
         return answer
 
 
-class Base64ImageField(serializers.ImageField):
-    """Кастомный тип поля для декодирования медиафайлов."""
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format_file, image_str = data.split(';base64,')
-            extension = format_file.split('/')[-1]
-            if extension not in MEDIA_FORMATS:
-                raise serializers.ValidationError(
-                    'Не поддерживаемый медиа-формат! '
-                    'Разрешены следующие форматы: jpg, jpeg, png, svg.'
-                )
-            return ContentFile(
-                base64.b64decode(image_str), name='temp.' + extension
-            )
-
-
 class TravelSerializer(serializers.ModelSerializer):
     """Базовый сериализатор для путешествий."""
 
@@ -156,11 +140,15 @@ class TravelSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'description', 'start_date', 'end_date')
 
     def validate(self, data: dict) -> dict | None:
-        if data['start_date'] >= data['end_date']:
-            raise serializers.ValidationError(
-                'Дата окончания путешествия не может быть раньше даты начала!'
-            )
-        return data
+        start_date, end_date = data.get('start_date'), data.get('end_date')
+        if start_date is None and end_date is None:
+            return data
+        if None not in (start_date, end_date):
+            travel_dates_validator(start_date, end_date)
+            return data
+        msg = ('Укажите дату начала путешествия!' if start_date is None else
+               'Укажите дату окончания путешествия!')
+        raise serializers.ValidationError(msg)
 
 
 class TravelPostSerializer(TravelSerializer):
@@ -174,8 +162,8 @@ class TravelPostSerializer(TravelSerializer):
     def create(self, validated_data):
         images = validated_data.pop('images')
         travel = Travel.objects.create(**validated_data)
-        for image in images:
-            Image.objects.get_or_create(image=image, travel=travel)
+        image_data = [{'image': image, 'travel': travel} for image in images]
+        Image.objects.bulk_create(Image(**data) for data in image_data)
         return travel
 
 

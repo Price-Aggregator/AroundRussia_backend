@@ -11,7 +11,7 @@ router = DefaultRouter()
 
 router.register('cities', CityViewSet)
 router.register('activity', ActivityViewSet)
-router.register('travels', TravelViewSet)
+router.register('travels', TravelViewSet, basename='travels')
 
 urlpatterns = [
     path('', include(router.urls)),
