@@ -5,7 +5,7 @@ import requests
 from django.db.models import Sum
 from djoser.views import TokenCreateView as DjTokenCreateView
 from djoser.views import TokenDestroyView as DjTokenDestroyView
-from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
@@ -117,14 +117,18 @@ class TokenDestroyView(DjTokenDestroyView):
 
 class TravelViewSet(mixins.CreateModelMixin,
                     mixins.DestroyModelMixin,
-                    mixins.UpdateModelMixin,
                     mixins.ListModelMixin,
+                    mixins.UpdateModelMixin,
                     viewsets.GenericViewSet):
     """ViewSet для получения путешествий."""
-    queryset = Travel.objects.all().annotate(
-        total_price=Sum('activities__price')
-    )
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (IsAuthorOrAdmin,)
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            queryset = Travel.objects.all()
+        else:
+            queryset = Travel.objects.filter(traveler=self.request.user)
+        return queryset.annotate(total_price=Sum('activities__price'))
 
     def get_serializer_class(self) -> Serializer:
         match self.action:
