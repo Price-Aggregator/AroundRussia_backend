@@ -162,8 +162,9 @@ class TravelPostSerializer(TravelSerializer):
     def create(self, validated_data):
         images = validated_data.pop('images')
         travel = Travel.objects.create(**validated_data)
-        image_data = [{'image': image, 'travel': travel} for image in images]
-        Image.objects.bulk_create(Image(**data) for data in image_data)
+        Image.objects.bulk_create(
+            Image(image=image, travel=travel) for image in images
+        )
         return travel
 
 
