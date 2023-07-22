@@ -7,10 +7,17 @@ User = get_user_model()
 
 class Travel(models.Model):
     name = models.CharField(
-        'Наименование путешествия',
-        max_length=200,
+        'Название путешествия',
+        max_length=100,
         unique=True,
-        help_text='Укажите наименование путешествия'
+        help_text='Укажите название путешествия'
+    )
+    description = models.CharField(
+        'Описание путешествия',
+        max_length=2000,
+        null=True,
+        blank=True,
+        help_text='Укажите описание путешествия'
     )
     start_date = models.DateField(
         'Дата начала путешествия',
@@ -19,11 +26,6 @@ class Travel(models.Model):
     end_date = models.DateField(
         'Дата окончания путешествия',
         help_text='Укажите дату окончания путешествия'
-    )
-    image = models.ImageField(
-        upload_to='travel_diary/images/',
-        null=True,
-        default=None
     )
     traveler = models.ForeignKey(
         User,
@@ -41,17 +43,35 @@ class Travel(models.Model):
         return self.name
 
 
+class Image(models.Model):
+    image = models.ImageField(upload_to='travel_diary/images/')
+    travel = models.ForeignKey(
+        Travel,
+        verbose_name='Путешествие',
+        on_delete=models.CASCADE,
+        related_name='images',
+    )
+
+    class Meta:
+        ordering = ('travel',)
+        verbose_name = 'Изображение'
+        verbose_name_plural = 'Изображения'
+
+    def __str__(self):
+        return self.image
+
+
 class Activity(models.Model):
     """Модель активностей."""
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE,
-                               related_name='author')
+                               related_name='activities')
     travel = models.ForeignKey(Travel,
                                on_delete=models.CASCADE,
-                               related_name='travel')
+                               related_name='activities')
     name = models.CharField(verbose_name='Название события',
                             help_text='Введите название',
-                            max_length=255,)
+                            max_length=255)
     category = models.CharField(verbose_name='Категория события',
                                 help_text='Выберите категорию',
                                 max_length=50)
@@ -70,8 +90,10 @@ class Activity(models.Model):
                                    max_length=255,
                                    null=True,
                                    blank=True)
-    price = models.IntegerField(verbose_name='Цена',
+    price = models.DecimalField(verbose_name='Цена',
                                 help_text='Введите цену',
+                                max_digits=10,
+                                decimal_places=2,
                                 null=True,
                                 blank=True)
     media = models.FileField(upload_to='files/',

@@ -1,14 +1,15 @@
-import base64
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
-from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from tickets.models import City
-from travel_diary.models import Activity, Travel
+from travel_diary.models import Activity, Image, Travel
 
 from .constants import BLOCK_CITY, CATEGORIES
+from .fields import Base64ImageField
+from .validators import travel_dates_validator
 
 User = get_user_model()
 
@@ -112,24 +113,12 @@ class UserSerializer(DjUserCreateSerializer):
         return super().save(**kwargs)
 
 
-class Base64ImageField(serializers.ImageField):
-    """Кастомный тип поля для декодирования медиафайлов."""
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format_file, image_str = data.split(';base64,')
-            extension = format_file.split('/')[-1]
-            data = ContentFile(
-                base64.b64decode(image_str), name='temp.' + extension
-            )
-        return super().to_internal_value(data)
-
-
 class ActivityListSerializer(serializers.ModelSerializer):
     """Сериализатор списочного представления активностей."""
 
     class Meta:
         model = Activity
-        fields = ('name', 'category', 'address', 'date',
+        fields = ('id', 'name', 'category', 'address', 'date',
                   'time', 'price', 'media', 'origin', 'destination')
 
     def to_representation(self, instance: Activity) -> dict:
@@ -143,36 +132,57 @@ class ActivityListSerializer(serializers.ModelSerializer):
         return answer
 
 
-class TravelListSerializer(serializers.ModelSerializer):
-    """Сериализатор для вывода списка путешествий."""
-
-    class Meta:
-        model = Travel
-        fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
-
-
 class TravelSerializer(serializers.ModelSerializer):
-    """Сериализатор для вывода путешествия с активностями."""
-    image = Base64ImageField(required=False, allow_null=True)
+    """Базовый сериализатор для путешествий."""
 
     class Meta:
         model = Travel
-        fields = ('name', 'start_date', 'end_date', 'image', 'traveler')
-        read_only_fields = ('traveler',)
+        fields = ('id', 'name', 'description', 'start_date', 'end_date')
 
     def validate(self, data: dict) -> dict | None:
-        if data['start_date'] >= data['end_date']:
-            raise serializers.ValidationError(
-                'Дата окончания путешествия не может быть раньше даты начала!'
-            )
-        return data
+        start_date, end_date = data.get('start_date'), data.get('end_date')
+        if start_date is None and end_date is None:
+            return data
+        if None not in (start_date, end_date):
+            travel_dates_validator(start_date, end_date)
+            return data
+        msg = ('Укажите дату начала путешествия!' if start_date is None else
+               'Укажите дату окончания путешествия!')
+        raise serializers.ValidationError(msg)
 
 
-class TravelRetrieveSerializer(TravelSerializer):
-    activity = ActivityListSerializer(many=True, source='travel')
+class TravelPostSerializer(TravelSerializer):
+    """Сериализатор для создания путешествия."""
+    images = serializers.ListField(
+        child=Base64ImageField(), allow_empty=True, write_only=True)
 
     class Meta(TravelSerializer.Meta):
-        fields = TravelSerializer.Meta.fields + ('activity',)
+        fields = TravelSerializer.Meta.fields + ('images',)
+
+    def create(self, validated_data):
+        images = validated_data.pop('images')
+        travel = Travel.objects.create(**validated_data)
+        Image.objects.bulk_create(
+            Image(image=image, travel=travel) for image in images
+        )
+        return travel
+
+
+class TravelListSerializer(TravelSerializer):
+    """Сериализатор для вывода списка путешествий с активностями."""
+
+    activities = ActivityListSerializer(many=True)
+    total_price = serializers.FloatField()
+    images = serializers.SerializerMethodField()
+
+    @extend_schema_field(list[str])
+    def get_images(self, object):
+        return [str(image.image) for image in object.images.all()]
+
+    class Meta(TravelSerializer.Meta):
+        fields = TravelSerializer.Meta.fields + ('images',
+                                                 'activities',
+                                                 'total_price')
 
 
 class ActivitySerializer(serializers.ModelSerializer):

@@ -2,6 +2,7 @@ import os
 from http import HTTPStatus
 
 import requests
+from django.db.models import Sum
 from djoser.views import TokenCreateView as DjTokenCreateView
 from djoser.views import TokenDestroyView as DjTokenDestroyView
 from rest_framework import filters, mixins, status, viewsets
@@ -18,7 +19,7 @@ from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .permissions import IsAuthorOrAdmin
 from .serializers import (ActivitySerializer, CitySerializer, TicketSerializer,
-                          TravelListSerializer, TravelRetrieveSerializer,
+                          TravelListSerializer, TravelPostSerializer,
                           TravelSerializer)
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
@@ -113,16 +114,27 @@ class TokenDestroyView(DjTokenDestroyView):
         return super().post(request)
 
 
-class TravelViewSet(viewsets.ModelViewSet):
+class TravelViewSet(mixins.CreateModelMixin,
+                    mixins.DestroyModelMixin,
+                    mixins.ListModelMixin,
+                    mixins.UpdateModelMixin,
+                    viewsets.GenericViewSet):
     """ViewSet для получения путешествий."""
-    serializer_class = TravelSerializer
-    queryset = Travel.objects.all()
+    permission_classes = (IsAuthorOrAdmin,)
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            queryset = Travel.objects.all()
+        else:
+            queryset = Travel.objects.filter(traveler=self.request.user)
+        return queryset.annotate(total_price=Sum('activities__price'))
 
     def get_serializer_class(self) -> Serializer:
-        if self.action == 'list':
-            return TravelListSerializer
-        if self.action == 'retrieve':
-            return TravelRetrieveSerializer
+        match self.action:
+            case 'list':
+                return TravelListSerializer
+            case 'create':
+                return TravelPostSerializer
         return TravelSerializer
 
     def perform_create(self, serializer: Serializer) -> None:
