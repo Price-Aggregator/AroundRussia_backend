@@ -3,7 +3,7 @@ import base64
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
-from .constants import MEDIA_FORMATS
+from .constants import FILE_FORMATS, MEDIA_FORMATS
 
 
 class Base64ImageField(serializers.ImageField):
@@ -25,9 +25,14 @@ class Base64ImageField(serializers.ImageField):
 class Base64FileField(serializers.FileField):
     """Кастомный тип поля для декодирования медиафайлов."""
     def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:media'):
+        if isinstance(data, str) and data.startswith('data:@file'):
             format_file, media_str = data.split(';base64,')
             extension = format_file.split('/')[-1]
+            if extension not in FILE_FORMATS:
+                raise serializers.ValidationError(
+                    'Не поддерживаемый формат файла! '
+                    'Разрешены следующие форматы: pdf.'
+                )
             return ContentFile(
                 base64.b64decode(media_str), name='temp.' + extension
             )

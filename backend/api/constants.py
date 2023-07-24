@@ -54,3 +54,6 @@ MAX_IMAGES_PER_TRAVEL: Final[int] = 20
 
 MEDIA_FORMATS = ('jpeg', 'jpg', 'png', 'svg')
 """Разрешенные медиа-форматы."""
+
+FILE_FORMATS: Final[set[str]] = ('pdf')
+"""Разрешенные форматы файлов."""

@@ -18,8 +18,8 @@ from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .permissions import IsAuthorOrAdmin
-from .serializers import (ActivitySerializer, ActivityPostSerializer,
-                          ActivityListSerializer, CitySerializer,
+from .serializers import (ActivityListSerializer,
+                          ActivityPostSerializer, CitySerializer,
                           TicketSerializer, TravelListSerializer,
                           TravelPostSerializer, TravelSerializer)
 from .utils import get_calendar_days, lazy_cycling
@@ -148,12 +148,9 @@ class ActivityViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
     """Базовый ViewSet для карточек."""
     queryset = Activity.objects.all()
     permission_classes = (IsAuthorOrAdmin,)
-    serializer_class = ActivitySerializer
 
     def get_serializer_class(self) -> Serializer:
-        if self.action == 'list':
-            return ActivityListSerializer
-        if self.action == 'create':
+        if self.action in ['create', 'update']:
             return ActivityPostSerializer
         return ActivityListSerializer
 

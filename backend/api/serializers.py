@@ -115,6 +115,7 @@ class UserSerializer(DjUserCreateSerializer):
 
 class ActivitySerializer(serializers.ModelSerializer):
     """Базовый сериализатор для карточек."""
+    travel = serializers.IntegerField(source='travel_id', write_only=True)
 
     class Meta:
         model = Activity
@@ -125,6 +126,7 @@ class ActivitySerializer(serializers.ModelSerializer):
                   'date',
                   'time',
                   'price',
+                  'description',
                   'address',
                   'origin',
                   'destination')
@@ -156,13 +158,23 @@ class ActivitySerializer(serializers.ModelSerializer):
         return data
 
 
+class ActivityMediaSerializer(serializers.Serializer):
+    media = Base64FileField()
+
+    def to_representation(self, instance):
+        return super().to_representation(instance).get('media')
+
+
 class ActivityListSerializer(ActivitySerializer):
     """Сериализатор списочного представления активностей."""
     medias = serializers.SerializerMethodField()
 
     @extend_schema_field(list[str])
-    def get_medias(self, object):
-        return [str(media.media) for media in object.medias.all()]
+    def get_medias(self, obj):
+        request = self.context.get('request')
+        return ActivityMediaSerializer(obj.medias,
+                                       many=True,
+                                       context={'request': request}).data
 
     class Meta(ActivitySerializer.Meta):
         fields = ActivitySerializer.Meta.fields + ('medias',)
@@ -181,7 +193,7 @@ class ActivityListSerializer(ActivitySerializer):
 class ActivityPostSerializer(ActivitySerializer):
     """Сериализатор для создания активности."""
     medias = serializers.ListField(
-        child=Base64FileField(),
+        child=Base64FileField(use_url=True),
         allow_empty=True, write_only=True
     )
 
@@ -199,13 +211,16 @@ class ActivityPostSerializer(ActivitySerializer):
     def create(self, validated_data):
         medias = validated_data.pop('medias', None)
         activity = Activity.objects.create(**validated_data)
-        self.add_medias(medias, activity)
+        if medias:
+            self.add_medias(medias, activity)
         return activity
 
-    # def update(self, instance, validated_data):
-    #     medias = validated_data.pop('medias')
-
-    #     return super().update(instance, validated_data)
+    def update(self, instance, validated_data):
+        medias = validated_data.pop('medias', None)
+        if medias:
+            Media.objects.filter(activity_id=instance.id).delete()
+            self.add_medias(medias, instance)
+        return super().update(instance, validated_data)
 
 
 class TravelSerializer(serializers.ModelSerializer):
