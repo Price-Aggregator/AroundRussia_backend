@@ -5,10 +5,10 @@ from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from tickets.models import City
-from travel_diary.models import Activity, Image, Travel
+from travel_diary.models import Activity, Image, Media, Travel
 
 from .constants import BLOCK_CITY, CATEGORIES
-from .fields import Base64ImageField
+from .fields import Base64ImageField, Base64FileField
 from .validators import travel_dates_validator
 
 User = get_user_model()
@@ -113,13 +113,71 @@ class UserSerializer(DjUserCreateSerializer):
         return super().save(**kwargs)
 
 
-class ActivityListSerializer(serializers.ModelSerializer):
-    """Сериализатор списочного представления активностей."""
+class ActivitySerializer(serializers.ModelSerializer):
+    """Базовый сериализатор для карточек."""
+    travel = serializers.IntegerField(source='travel_id', write_only=True)
 
     class Meta:
         model = Activity
-        fields = ('id', 'name', 'category', 'address', 'date',
-                  'time', 'price', 'media', 'origin', 'destination')
+        fields = ('id',
+                  'travel',
+                  'name',
+                  'category',
+                  'date',
+                  'time',
+                  'price',
+                  'description',
+                  'address',
+                  'origin',
+                  'destination')
+
+    def validate(self, data: dict) -> dict | None:
+        if data['category'] not in CATEGORIES:
+            raise serializers.ValidationError(
+                f'Допустимые категории {CATEGORIES}'
+            )
+        date = datetime.strptime(str(data['date']), '%Y-%m-%d')
+        if date < datetime.today():
+            raise serializers.ValidationError(
+                'Дата не может быть раньше сегодня.'
+            )
+        if 'price' in data and data['price'] < 0:
+            raise serializers.ValidationError(
+                'Цена не может быть ниже 0.'
+            )
+        if data['category'] == 'flight':
+            if 'origin' not in data or 'destination' not in data:
+                raise serializers.ValidationError(
+                    'Необходимо указать место отправления и назначения'
+                )
+        if data['category'] != 'flight':
+            if 'address' not in data:
+                raise serializers.ValidationError(
+                    'Необходимо указать адрес.'
+                )
+        return data
+
+
+class ActivityMediaSerializer(serializers.Serializer):
+    media = Base64FileField()
+
+    def to_representation(self, instance):
+        return super().to_representation(instance).get('media')
+
+
+class ActivityListSerializer(ActivitySerializer):
+    """Сериализатор списочного представления активностей."""
+    medias = serializers.SerializerMethodField()
+
+    @extend_schema_field(list[str])
+    def get_medias(self, obj):
+        request = self.context.get('request')
+        return ActivityMediaSerializer(obj.medias,
+                                       many=True,
+                                       context={'request': request}).data
+
+    class Meta(ActivitySerializer.Meta):
+        fields = ActivitySerializer.Meta.fields + ('medias',)
 
     def to_representation(self, instance: Activity) -> dict:
         answer = (
@@ -130,6 +188,39 @@ class ActivityListSerializer(serializers.ModelSerializer):
         else:
             answer.pop('address')
         return answer
+
+
+class ActivityPostSerializer(ActivitySerializer):
+    """Сериализатор для создания активности."""
+    medias = serializers.ListField(
+        child=Base64FileField(use_url=True),
+        allow_empty=True, write_only=True
+    )
+
+    class Meta(ActivitySerializer.Meta):
+        fields = ActivitySerializer.Meta.fields + ('medias',)
+
+    def add_medias(self, medias, activity):
+        Media.objects.bulk_create(
+            [Media(
+                media=media,
+                activity=activity
+            ) for media in medias]
+        )
+
+    def create(self, validated_data):
+        medias = validated_data.pop('medias', None)
+        activity = Activity.objects.create(**validated_data)
+        if medias:
+            self.add_medias(medias, activity)
+        return activity
+
+    def update(self, instance, validated_data):
+        medias = validated_data.pop('medias', None)
+        if medias:
+            Media.objects.filter(activity_id=instance.id).delete()
+            self.add_medias(medias, instance)
+        return super().update(instance, validated_data)
 
 
 class TravelSerializer(serializers.ModelSerializer):
@@ -183,49 +274,3 @@ class TravelListSerializer(TravelSerializer):
         fields = TravelSerializer.Meta.fields + ('images',
                                                  'activities',
                                                  'total_price')
-
-
-class ActivitySerializer(serializers.ModelSerializer):
-    """Базовый сериализатор для карточек."""
-    author = serializers.PrimaryKeyRelatedField(read_only=True)
-
-    class Meta:
-        model = Activity
-        fields = ('author',
-                  'travel',
-                  'id',
-                  'name',
-                  'category',
-                  'date',
-                  'time',
-                  'price',
-                  'media',
-                  'address',
-                  'origin',
-                  'destination')
-
-    def validate(self, data: dict) -> dict | None:
-        if data['category'] not in CATEGORIES:
-            raise serializers.ValidationError(
-                f'Допустимые категории {CATEGORIES}'
-            )
-        date = datetime.strptime(str(data['date']), '%Y-%m-%d')
-        if date < datetime.today():
-            raise serializers.ValidationError(
-                'Дата не может быть раньше сегодня.'
-            )
-        if 'price' in data and data['price'] < 0:
-            raise serializers.ValidationError(
-                'Цена не может быть ниже 0.'
-            )
-        if data['category'] == 'flight':
-            if 'origin' not in data or 'destination' not in data:
-                raise serializers.ValidationError(
-                    'Необходимо указать место отправления и назначения'
-                )
-        if data['category'] != 'flight':
-            if 'address' not in data:
-                raise serializers.ValidationError(
-                    'Необходимо указать адрес.'
-                )
-        return data

@@ -1,6 +1,9 @@
+import os
+
 from api.validators import validate_file_extension
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.dispatch import receiver
 
 User = get_user_model()
 
@@ -62,53 +65,67 @@ class Image(models.Model):
 
 class Activity(models.Model):
     """Модель активностей."""
-    author = models.ForeignKey(User,
-                               on_delete=models.CASCADE,
-                               related_name='activities')
-    travel = models.ForeignKey(Travel,
-                               on_delete=models.CASCADE,
-                               related_name='activities')
-    name = models.CharField(verbose_name='Название события',
-                            help_text='Введите название',
-                            max_length=255)
-    category = models.CharField(verbose_name='Категория события',
-                                help_text='Выберите категорию',
-                                max_length=50)
-    address = models.CharField(verbose_name='Адрес',
-                               help_text='Укажите адрес',
-                               max_length=255,
-                               null=True)
-    date = models.DateField(verbose_name='Дата',
-                            help_text='Введите дату',
-                            db_index=True)
-    time = models.TimeField(verbose_name='Время',
-                            help_text='Введите время',
-                            db_index=True)
-    description = models.CharField(verbose_name='Описание',
-                                   help_text='Введите описание',
-                                   max_length=255,
-                                   null=True,
-                                   blank=True)
-    price = models.DecimalField(verbose_name='Цена',
-                                help_text='Введите цену',
-                                max_digits=10,
-                                decimal_places=2,
-                                null=True,
-                                blank=True)
-    media = models.FileField(upload_to='files/',
-                             verbose_name='Файл',
-                             help_text='Загрузите файл',
-                             validators=[validate_file_extension],
-                             null=True,
-                             blank=True)
-    origin = models.CharField(verbose_name='Откуда',
-                              help_text='Введите пункт отправления',
-                              max_length=50,
-                              null=True)
-    destination = models.CharField(verbose_name='Куда',
-                                   help_text='Введите пункт назначения',
-                                   max_length=50,
-                                   null=True)
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='activities'
+    )
+    travel = models.ForeignKey(
+        Travel,
+        on_delete=models.CASCADE,
+        related_name='activities'
+    )
+    name = models.CharField(
+        verbose_name='Название события',
+        help_text='Введите название',
+        max_length=255
+    )
+    category = models.CharField(
+        verbose_name='Категория события',
+        help_text='Выберите категорию',
+        max_length=50
+    )
+    address = models.CharField(
+        verbose_name='Адрес',
+        help_text='Укажите адрес',
+        max_length=255,
+        null=True
+    )
+    date = models.DateField(
+        verbose_name='Дата',
+        help_text='Введите дату',
+        db_index=True
+    )
+    time = models.TimeField(
+        verbose_name='Время',
+        help_text='Введите время',
+        db_index=True
+    )
+    description = models.CharField(
+        verbose_name='Описание',
+        help_text='Введите описание',
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    price = models.IntegerField(
+        verbose_name='Цена',
+        help_text='Введите цену',
+        null=True,
+        blank=True
+    )
+    origin = models.CharField(
+        verbose_name='Откуда',
+        help_text='Введите пункт отправления',
+        max_length=50,
+        null=True
+    )
+    destination = models.CharField(
+        verbose_name='Куда',
+        help_text='Введите пункт назначения',
+        max_length=50,
+        null=True
+    )
 
     class Meta:
         ordering = ['-date', '-time']
@@ -117,3 +134,35 @@ class Activity(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Media(models.Model):
+    media = models.FileField(
+        upload_to='files/',
+        verbose_name='Файл',
+        help_text='Загрузите файл',
+        validators=[validate_file_extension]
+    )
+    activity = models.ForeignKey(
+        Activity,
+        verbose_name='Активность',
+        on_delete=models.CASCADE,
+        related_name='medias',
+    )
+
+    class Meta:
+        ordering = ('activity',)
+        verbose_name = 'Медиа файл'
+        verbose_name_plural = 'Медиа файлы'
+
+    def __str__(self):
+        return str(self.media)
+
+
+@receiver(models.signals.post_delete, sender=Media)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """Удаляет файл из файловой системы
+    при удалении соответсвующего объекта 'Media'."""
+    if instance.media:
+        if os.path.isfile(instance.media.path):
+            os.remove(instance.media.path)
