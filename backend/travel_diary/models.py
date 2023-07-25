@@ -1,6 +1,9 @@
+import os
+
 from api.validators import validate_file_extension
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.dispatch import receiver
 
 User = get_user_model()
 
@@ -155,3 +158,12 @@ class Media(models.Model):
 
     def __str__(self):
         return str(self.media)
+
+
+@receiver(models.signals.post_delete, sender=Media)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """Удаляет файл из файловой системы
+    при удалении соответсвующего объекта 'Media'."""
+    if instance.media:
+        if os.path.isfile(instance.media.path):
+            os.remove(instance.media.path)
