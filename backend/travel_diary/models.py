@@ -12,7 +12,6 @@ class Travel(models.Model):
     name = models.CharField(
         'Название путешествия',
         max_length=100,
-        unique=True,
         help_text='Укажите название путешествия'
     )
     description = models.CharField(
