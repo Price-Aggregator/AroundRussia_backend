@@ -8,7 +8,7 @@ from tickets.models import City
 from travel_diary.models import Activity, Image, Media, Travel
 
 from .constants import BLOCK_CITY, CATEGORIES
-from .fields import Base64ImageField, Base64FileField
+from .fields import Base64FileField, Base64ImageField
 from .validators import travel_dates_validator
 
 User = get_user_model()

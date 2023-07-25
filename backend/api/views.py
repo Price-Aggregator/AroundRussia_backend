@@ -19,10 +19,10 @@ from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .permissions import IsAuthorOrAdmin
-from .serializers import (ActivityListSerializer,
-                          ActivityPostSerializer, CitySerializer,
-                          TicketSerializer, TravelListSerializer,
-                          TravelPostSerializer, TravelSerializer)
+from .serializers import (ActivityListSerializer, ActivityPostSerializer,
+                          CitySerializer, TicketSerializer,
+                          TravelListSerializer, TravelPostSerializer,
+                          TravelSerializer)
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
