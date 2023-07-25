@@ -21,8 +21,7 @@ from .filter import sort_by_time, sort_transfer
 from .permissions import IsAuthorOrAdmin
 from .serializers import (ActivityListSerializer, ActivityPostSerializer,
                           CitySerializer, TicketSerializer,
-                          TravelListSerializer, TravelPostSerializer,
-                          TravelSerializer)
+                          TravelListSerializer, TravelSerializer)
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
@@ -125,19 +124,13 @@ class TravelViewSet(mixins.CreateModelMixin,
     permission_classes = (IsAuthorOrAdmin,)
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            queryset = Travel.objects.all()
-        else:
-            queryset = Travel.objects.filter(traveler=self.request.user)
+        queryset = (Travel.objects.all() if self.request.user.is_staff
+                    else Travel.objects.filter(traveler=self.request.user))
         return queryset.annotate(total_price=Sum('activities__price'))
 
     def get_serializer_class(self) -> Serializer:
-        match self.action:
-            case 'list':
-                return TravelListSerializer
-            case 'create':
-                return TravelPostSerializer
-        return TravelSerializer
+        return (TravelListSerializer if self.action == 'list'
+                else TravelSerializer)
 
     def perform_create(self, serializer: Serializer) -> None:
         serializer.save(traveler=self.request.user)
