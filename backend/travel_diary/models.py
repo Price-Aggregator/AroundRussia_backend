@@ -168,9 +168,14 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
             os.remove(instance.media.path)
 
 
+def __auto_delete_file(instance: Image | Media, field: str) -> None:
+    link = getattr(instance, field, None)
+    if link is not None and os.path.isfile(link.path):
+        os.remove(link.path)
+
+
 @receiver(models.signals.post_delete, sender=Image)
 def auto_delete_file_on_delete_image(instance, **kwargs):
     """Удаляет файл из файловой системы
     при удалении соответсвующего объекта `Image`."""
-    if instance.image and os.path.isfile(instance.image.path):
-        os.remove(instance.image.path)
+    __auto_delete_file(instance, 'image')
