@@ -90,11 +90,11 @@ class SearchTicketView(APIView):
             if 'sorting' in params and params['sorting'] == 'time':
                 params['sorting'] = 'price'
                 response_data = requests.get(URL_SEARCH, params=params,).json()
-                response_data = sort_by_time(response_data)
+                sort_by_time(response_data)
             else:
                 response_data = requests.get(URL_SEARCH, params=params,).json()
             if 'direct' in params and params['direct'] == 'false':
-                response_data = sort_transfer(response_data)
+                sort_transfer(response_data)
             response_data = lazy_cycling(response_data)
             my_serializer = TicketSerializer(data=response_data, many=True)
             return Response(my_serializer.initial_data)
