@@ -51,17 +51,7 @@ class Base64ImageField(serializers.ImageField, GenericBase64):
         return self._to_internal_value(data, 'data:image', MEDIA_FORMATS)
 
 
-class Base64FileField(serializers.FileField):
+class Base64FileField(serializers.FileField, GenericBase64):
     """Кастомный тип поля для декодирования медиафайлов."""
     def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:@file'):
-            format_file, media_str = data.split(';base64,')
-            extension = format_file.split('/')[-1]
-            if extension not in FILE_FORMATS:
-                raise serializers.ValidationError(
-                    'Не поддерживаемый формат файла! '
-                    'Разрешены следующие форматы: pdf.'
-                )
-            return ContentFile(
-                base64.b64decode(media_str), name='temp.' + extension
-            )
+        return self._to_internal_value(data, 'data:@file', FILE_FORMATS)

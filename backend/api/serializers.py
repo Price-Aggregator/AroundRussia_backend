@@ -210,8 +210,7 @@ class ActivityPostSerializer(ActivitySerializer):
 
 class TravelSerializer(serializers.ModelSerializer):
     """Базовый сериализатор для путешествий."""
-    images = serializers.ListField(
-        child=Base64ImageField(), allow_empty=True, write_only=True)
+    images = serializers.ListField(child=Base64ImageField(), write_only=True)
 
     class Meta:
         model = Travel
