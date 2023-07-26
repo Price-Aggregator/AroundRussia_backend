@@ -7,26 +7,11 @@ from rest_framework import serializers
 from tickets.models import City
 from travel_diary.models import Activity, Image, Media, Travel
 
-from .constants import BLOCK_CITY, CATEGORIES
-from .fields import Base64FileField, Base64ImageField
+from .constants import CATEGORIES
+from .fields import AirportField, Base64FileField, Base64ImageField
 from .validators import travel_dates_validator
 
 User = get_user_model()
-
-
-class AirportField(serializers.CharField):
-    """Поле для сериализатора.
-       Проверяет что все города сейчас доступны."""
-
-    def to_representation(self, value: str) -> str:
-        return value
-
-    def to_internal_value(self, data: str) -> str | None:
-        if data in BLOCK_CITY:
-            raise serializers.ValidationError(
-                'Извините, в данный момент аэропорт закрыт'
-            )
-        return data
 
 
 class CitySerializer(serializers.ModelSerializer):
@@ -225,38 +210,42 @@ class ActivityPostSerializer(ActivitySerializer):
 
 class TravelSerializer(serializers.ModelSerializer):
     """Базовый сериализатор для путешествий."""
+    images = serializers.ListField(child=Base64ImageField(), write_only=True)
 
     class Meta:
         model = Travel
-        fields = ('id', 'name', 'description', 'start_date', 'end_date')
+        fields = (
+            'id', 'name', 'description', 'start_date', 'end_date', 'images')
 
-    def validate(self, data: dict) -> dict | None:
-        start_date, end_date = data.get('start_date'), data.get('end_date')
-        if start_date is None and end_date is None:
-            return data
-        if None not in (start_date, end_date):
-            travel_dates_validator(start_date, end_date)
-            return data
-        msg = ('Укажите дату начала путешествия!' if start_date is None else
-               'Укажите дату окончания путешествия!')
-        raise serializers.ValidationError(msg)
-
-
-class TravelPostSerializer(TravelSerializer):
-    """Сериализатор для создания путешествия."""
-    images = serializers.ListField(
-        child=Base64ImageField(), allow_empty=True, write_only=True)
-
-    class Meta(TravelSerializer.Meta):
-        fields = TravelSerializer.Meta.fields + ('images',)
+    def _add_images(self, travel: Travel, images: list[str] | None) -> None:
+        if images is not None:
+            Image.objects.bulk_create(Image(image=image, travel=travel)
+                                      for image in images)
 
     def create(self, validated_data):
         images = validated_data.pop('images')
         travel = Travel.objects.create(**validated_data)
-        Image.objects.bulk_create(
-            Image(image=image, travel=travel) for image in images
-        )
+        self._add_images(travel, images)
         return travel
+
+    def update(self, instance: Travel, validated_data: dict):
+        try:
+            images = validated_data.pop('images')
+            instance.images.all().delete()
+            self._add_images(instance, images)
+        except KeyError:
+            pass
+
+        start_date = validated_data.get('start_date')
+        end_date = validated_data.get('end_date')
+        if start_date is None and end_date is None:
+            return super().update(instance, validated_data)
+        if start_date is None:
+            start_date = instance.start_date
+        if end_date is None:
+            end_date = instance.end_date
+        travel_dates_validator(start_date, end_date)
+        return super().update(instance, validated_data)
 
 
 class TravelListSerializer(TravelSerializer):
@@ -271,6 +260,4 @@ class TravelListSerializer(TravelSerializer):
         return [str(image.image) for image in object.images.all()]
 
     class Meta(TravelSerializer.Meta):
-        fields = TravelSerializer.Meta.fields + ('images',
-                                                 'activities',
-                                                 'total_price')
+        fields = TravelSerializer.Meta.fields + ('activities', 'total_price')
