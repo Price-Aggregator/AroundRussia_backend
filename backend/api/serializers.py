@@ -223,8 +223,10 @@ class TravelSerializer(serializers.ModelSerializer):
                                       for image in images)
 
     def create(self, validated_data):
+        travel_dates_validator(validated_data.get('start_date'),
+                               validated_data.get('end_date'))
         images = validated_data.pop('images')
-        travel = Travel.objects.create(**validated_data)
+        travel = super().create(validated_data)
         self._add_images(travel, images)
         return travel
 
