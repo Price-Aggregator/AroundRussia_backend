@@ -62,7 +62,7 @@ def travel_dates_validator(start: date, end: date) -> None:
     if end < start:
         raise serializers.ValidationError(
             'Дата окончания путешествия не может '
-            'быть раньше датЫ начала!'
+            'быть раньше даты начала!'
         )
     if start < dt.today().date():
         raise serializers.ValidationError(
