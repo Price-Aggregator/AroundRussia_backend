@@ -126,7 +126,9 @@ class TravelViewSet(mixins.CreateModelMixin,
     def get_queryset(self):
         queryset = (Travel.objects.all() if self.request.user.is_staff
                     else Travel.objects.filter(traveler=self.request.user))
-        return queryset.annotate(total_price=Sum('activities__price'))
+        return queryset.annotate(
+            total_price=Sum('activities__price')
+        ).order_by('-id')
 
     def get_serializer_class(self) -> Serializer:
         return (TravelListSerializer if self.action == 'list'
