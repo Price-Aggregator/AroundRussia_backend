@@ -6,6 +6,7 @@ from django.db.models import Sum
 from djoser.views import TokenCreateView as DjTokenCreateView
 from djoser.views import TokenDestroyView as DjTokenDestroyView
 from rest_framework import filters, mixins, status, viewsets
+from rest_framework.permissions import SAFE_METHODS
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
@@ -18,9 +19,9 @@ from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .permissions import IsAuthorOrAdmin
-from .serializers import (ActivitySerializer, CitySerializer, TicketSerializer,
-                          TravelListSerializer, TravelPostSerializer,
-                          TravelSerializer)
+from .serializers import (ActivityListSerializer, ActivityPostSerializer,
+                          CitySerializer, TicketSerializer,
+                          TravelListSerializer, TravelSerializer)
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
@@ -89,11 +90,11 @@ class SearchTicketView(APIView):
             if 'sorting' in params and params['sorting'] == 'time':
                 params['sorting'] = 'price'
                 response_data = requests.get(URL_SEARCH, params=params,).json()
-                response_data = sort_by_time(response_data)
+                sort_by_time(response_data)
             else:
                 response_data = requests.get(URL_SEARCH, params=params,).json()
             if 'direct' in params and params['direct'] == 'false':
-                response_data = sort_transfer(response_data)
+                sort_transfer(response_data)
             response_data = lazy_cycling(response_data)
             my_serializer = TicketSerializer(data=response_data, many=True)
             return Response(my_serializer.initial_data)
@@ -123,19 +124,15 @@ class TravelViewSet(mixins.CreateModelMixin,
     permission_classes = (IsAuthorOrAdmin,)
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            queryset = Travel.objects.all()
-        else:
-            queryset = Travel.objects.filter(traveler=self.request.user)
-        return queryset.annotate(total_price=Sum('activities__price'))
+        queryset = (Travel.objects.all() if self.request.user.is_staff
+                    else Travel.objects.filter(traveler=self.request.user))
+        return queryset.annotate(
+            total_price=Sum('activities__price')
+        ).order_by('-id')
 
     def get_serializer_class(self) -> Serializer:
-        match self.action:
-            case 'list':
-                return TravelListSerializer
-            case 'create':
-                return TravelPostSerializer
-        return TravelSerializer
+        return (TravelListSerializer if self.action == 'list'
+                else TravelSerializer)
 
     def perform_create(self, serializer: Serializer) -> None:
         serializer.save(traveler=self.request.user)
@@ -147,7 +144,11 @@ class ActivityViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
     """Базовый ViewSet для карточек."""
     queryset = Activity.objects.all()
     permission_classes = (IsAuthorOrAdmin,)
-    serializer_class = ActivitySerializer
+
+    def get_serializer_class(self) -> Serializer:
+        if self.request.method in SAFE_METHODS:
+            return ActivityListSerializer
+        return ActivityPostSerializer
 
     def perform_create(self, serializer: Serializer) -> None:
         """Переопределение метода perform_create."""

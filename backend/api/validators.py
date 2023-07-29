@@ -59,10 +59,10 @@ def validate_file_extension(value) -> None:  # noqa
 
 def travel_dates_validator(start: date, end: date) -> None:
     """Валидация дат начала и окончания путешествия."""
-    if end <= start:
+    if end < start:
         raise serializers.ValidationError(
             'Дата окончания путешествия не может '
-            'быть раньше или равна дате начала!'
+            'быть раньше даты начала!'
         )
     if start < dt.today().date():
         raise serializers.ValidationError(
