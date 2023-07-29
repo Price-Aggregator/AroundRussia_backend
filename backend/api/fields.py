@@ -54,4 +54,4 @@ class Base64ImageField(serializers.ImageField, GenericBase64):
 class Base64FileField(serializers.FileField, GenericBase64):
     """Кастомный тип поля для декодирования медиафайлов."""
     def to_internal_value(self, data):
-        return self._to_internal_value(data, 'data:@file', FILE_FORMATS)
+        return self._to_internal_value(data, 'data:application', FILE_FORMATS)
