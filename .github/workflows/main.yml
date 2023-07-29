@@ -62,9 +62,8 @@ jobs:
            script: |
              cd aroundrussia-app
              sudo docker-compose down --remove-orphans
-             sudo docker-compose rm -f backend frontend
-             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/around-russia-backend
-             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/around-russia-frontend
+             sudo docker-compose rm -f backend
+             sudo docker-compose pull backend
              rm -f .env
              touch .env
              echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
@@ -82,5 +81,5 @@ jobs:
              echo EMAIL_USER=${{ secrets.EMAIL_USER }} >> .env
              echo EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }} >> .env
              echo EMAIL_PORT=${{ secrets.EMAIL_PORT }} >> .env
-             sudo docker-compose up -d
+             sudo docker-compose up -d --build
              sudo docker image prune
