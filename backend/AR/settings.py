@@ -151,7 +151,7 @@ DJOSER = {
     },
     'LOGIN_FIELD': 'email',
     'PASSWORD_RESET_CONFIRM_URL': 'password-reset/{uid}/{token}',
-    'messages': 'api.constants.CustomMessages'
+    'CONSTANTS': {'messages': 'api.constants.CustomMessages'}
 }
 
 EMAIL_HOST = os.getenv('EMAIL_HOST')
