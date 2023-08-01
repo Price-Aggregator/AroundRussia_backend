@@ -1,5 +1,7 @@
 from typing import Final
 
+from django.utils.translation import gettext_lazy as _
+
 URL_WITH_CITIES: Final[str] = (
     'https://api.travelpayouts.com/data/ru/cities.json?_gl=1'
     '*100i7ih*_ga*MTUzMTY3NDIzNi4xNjg1ODI4ODQx*_ga_1WLL0NEBEH'
@@ -57,3 +59,17 @@ MEDIA_FORMATS: Final[tuple[str]] = ('jpeg', 'jpg', 'png', 'svg')
 
 FILE_FORMATS: Final[set[str]] = ('jpeg', 'jpg', 'pdf', 'png', 'svg')
 """Разрешенные форматы файлов."""
+
+
+class CustomMessages:
+    INVALID_CREDENTIALS_ERROR = _('Не получается войти с предоставленными '
+                                  'данными.')
+    INACTIVE_ACCOUNT_ERROR = _("Аккаунт пользователя неактивен.")
+    INVALID_TOKEN_ERROR = _("Неправильный токен.")
+    INVALID_UID_ERROR = _("Пользователь не найден.")
+    STALE_TOKEN_ERROR = _("Токен устарел.")
+    PASSWORD_MISMATCH_ERROR = _("Поля паролей не совпадают.")
+    USERNAME_MISMATCH_ERROR = _("Два поля {0} не совпадают.")
+    INVALID_PASSWORD_ERROR = _("Неправильный пароль.")
+    EMAIL_NOT_FOUND = _("Не найден пользователь с указанной почтой.")
+    CANNOT_CREATE_USER_ERROR = _("Невозможно создать аккаунт.")

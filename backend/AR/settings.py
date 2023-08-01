@@ -150,7 +150,8 @@ DJOSER = {
         'user_create': 'api.serializers.UserSerializer'
     },
     'LOGIN_FIELD': 'email',
-    'PASSWORD_RESET_CONFIRM_URL': 'password-reset/{uid}/{token}'
+    'PASSWORD_RESET_CONFIRM_URL': 'password-reset/{uid}/{token}',
+    'messages': 'api.constants.CustomMessages'
 }
 
 EMAIL_HOST = os.getenv('EMAIL_HOST')
