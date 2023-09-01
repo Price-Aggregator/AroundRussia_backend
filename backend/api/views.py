@@ -163,8 +163,4 @@ class FAQViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = FAQSerializer
 
     def get_queryset(self):
-        faq = cache.get(FAQ_CACHE_KEY)
-        if faq is None:
-            faq = FAQ.objects.all()
-            cache.set(FAQ_CACHE_KEY, faq)
-        return faq
+        return cache.get_or_set(FAQ_CACHE_KEY, FAQ.objects.all, timeout=None)
