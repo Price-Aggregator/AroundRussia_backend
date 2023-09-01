@@ -1,7 +1,8 @@
 import requests
+from django.core.management import BaseCommand  # noqa: I001
+
 # noqa: I004
 from api.constants import URL_WITH_CITIES  # noqa: I001
-from django.core.management import BaseCommand  # noqa: I001
 from tickets.models import City
 
 
