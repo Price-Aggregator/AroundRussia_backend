@@ -60,6 +60,9 @@ MEDIA_FORMATS: Final[tuple[str]] = ('jpeg', 'jpg', 'png', 'svg')
 FILE_FORMATS: Final[set[str]] = ('jpeg', 'jpg', 'pdf', 'png', 'svg')
 """Разрешенные форматы файлов."""
 
+FAQ_CACHE_KEY = 'faq'
+FAQ_LENGTH = 500
+
 
 class CustomMessages:
     INVALID_CREDENTIALS_ERROR = _('Не получается войти с предоставленными '

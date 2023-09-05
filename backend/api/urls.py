@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import (ActivityViewSet, CalendarView, CityViewSet,
+from .views import (ActivityViewSet, CalendarView, CityViewSet, FAQViewSet,
                     SearchTicketView, TokenCreateView, TokenDestroyView,
                     TravelViewSet)
 
@@ -12,6 +12,8 @@ router = DefaultRouter()
 router.register('cities', CityViewSet)
 router.register('activity', ActivityViewSet)
 router.register('travels', TravelViewSet, basename='travels')
+router.register('faq', FAQViewSet, basename='faq')
+
 
 urlpatterns = [
     path('', include(router.urls)),

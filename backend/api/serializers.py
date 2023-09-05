@@ -3,6 +3,7 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
 from drf_spectacular.utils import extend_schema_field
+from faq.models import FAQ
 from rest_framework import serializers
 from tickets.models import City
 from travel_diary.models import Activity, Image, Media, Travel
@@ -219,8 +220,10 @@ class TravelSerializer(serializers.ModelSerializer):
 
     def _add_images(self, travel: Travel, images: list[str] | None) -> None:
         if images is not None:
+            assert Image.objects.filter(travel=travel).count() == 0
             Image.objects.bulk_create(Image(image=image, travel=travel)
                                       for image in images)
+            assert Image.objects.filter(travel=travel).count() == len(images)
 
     def create(self, validated_data):
         travel_dates_validator(validated_data.get('start_date'),
@@ -263,3 +266,10 @@ class TravelListSerializer(TravelSerializer):
 
     class Meta(TravelSerializer.Meta):
         fields = TravelSerializer.Meta.fields + ('activities', 'total_price')
+
+
+class FAQSerializer(serializers.ModelSerializer):
+    """Сериализатор для вывода FAQ."""
+    class Meta:
+        model = FAQ
+        fields = ('question', 'answer')

@@ -2,9 +2,11 @@ import os
 from http import HTTPStatus
 
 import requests
+from django.core.cache import cache
 from django.db.models import Sum
 from djoser.views import TokenCreateView as DjTokenCreateView
 from djoser.views import TokenDestroyView as DjTokenDestroyView
+from faq.models import FAQ, FAQ_CACHE_KEY
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.request import Request
@@ -20,7 +22,7 @@ from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .permissions import IsAuthorOrAdmin
 from .serializers import (ActivityListSerializer, ActivityPostSerializer,
-                          CitySerializer, TicketSerializer,
+                          CitySerializer, FAQSerializer, TicketSerializer,
                           TravelListSerializer, TravelSerializer)
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
@@ -153,3 +155,11 @@ class ActivityViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
     def perform_create(self, serializer: Serializer) -> None:
         """Переопределение метода perform_create."""
         serializer.save(author=self.request.user)
+
+
+class FAQViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    "ViewSet returns a frequently asked questions list."
+    serializer_class = FAQSerializer
+
+    def get_queryset(self):
+        return cache.get_or_set(FAQ_CACHE_KEY, FAQ.objects.all, timeout=None)
