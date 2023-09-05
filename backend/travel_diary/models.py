@@ -1,10 +1,9 @@
 import os
 
+from api.validators import validate_file_extension
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.dispatch import receiver
-
-from api.validators import validate_file_extension
 
 User = get_user_model()
 

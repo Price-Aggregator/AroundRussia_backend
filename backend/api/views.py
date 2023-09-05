@@ -6,14 +6,13 @@ from django.core.cache import cache
 from django.db.models import Sum
 from djoser.views import TokenCreateView as DjTokenCreateView
 from djoser.views import TokenDestroyView as DjTokenDestroyView
+from faq.models import FAQ, FAQ_CACHE_KEY
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
-
-from faq.models import FAQ, FAQ_CACHE_KEY
 from tickets.models import City  # noqa: I001
 from travel_diary.models import Activity, Travel  # noqa: I001
 
