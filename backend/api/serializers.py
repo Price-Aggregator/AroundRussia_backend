@@ -225,10 +225,10 @@ class TravelSerializer(serializers.ModelSerializer):
                                       for image in images)
             assert Image.objects.filter(travel=travel).count() == len(images)
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict):
         travel_dates_validator(validated_data.get('start_date'),
                                validated_data.get('end_date'))
-        images = validated_data.pop('images')
+        images = validated_data.pop('images', None)
         travel = super().create(validated_data)
         self._add_images(travel, images)
         return travel
@@ -257,7 +257,7 @@ class TravelListSerializer(TravelSerializer):
     """Сериализатор для вывода списка путешествий с активностями."""
 
     activities = ActivityListSerializer(many=True)
-    total_price = serializers.FloatField()
+    total_price = serializers.DecimalField(**Activity.PRICE_FORMAT)
     images = serializers.SerializerMethodField()
 
     @extend_schema_field(list[str])

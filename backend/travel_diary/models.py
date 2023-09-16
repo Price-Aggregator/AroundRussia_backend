@@ -3,6 +3,7 @@ import os
 from api.validators import validate_file_extension
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import F
 from django.dispatch import receiver
 
 User = get_user_model()
@@ -65,6 +66,8 @@ class Image(models.Model):
 
 class Activity(models.Model):
     """Модель активностей."""
+    PRICE_FORMAT = {'max_digits': 10, 'decimal_places': 2}
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -94,41 +97,44 @@ class Activity(models.Model):
     date = models.DateField(
         verbose_name='Дата',
         help_text='Введите дату',
-        db_index=True
+        db_index=True,
     )
     time = models.TimeField(
         verbose_name='Время',
         help_text='Введите время',
-        db_index=True
+        null=True,
+        blank=True,
     )
     description = models.CharField(
         verbose_name='Описание',
         help_text='Введите описание',
         max_length=255,
         null=True,
-        blank=True
+        blank=True,
     )
-    price = models.IntegerField(
+    price = models.DecimalField(
         verbose_name='Цена',
         help_text='Введите цену',
+        max_digits=PRICE_FORMAT['max_digits'],
+        decimal_places=PRICE_FORMAT['decimal_places'],
         null=True,
-        blank=True
+        blank=True,
     )
     origin = models.CharField(
         verbose_name='Откуда',
         help_text='Введите пункт отправления',
         max_length=50,
-        null=True
+        null=True,
     )
     destination = models.CharField(
         verbose_name='Куда',
         help_text='Введите пункт назначения',
         max_length=50,
-        null=True
+        null=True,
     )
 
     class Meta:
-        ordering = ['-date', '-time']
+        ordering = ['-date', F('time').desc(nulls_last=True)]
         verbose_name = 'Карточка активностей'
         verbose_name_plural = 'Карточки активностей'
 
