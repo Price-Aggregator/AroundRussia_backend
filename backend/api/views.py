@@ -6,24 +6,27 @@ from django.core.cache import cache
 from django.db.models import Sum
 from djoser.views import TokenCreateView as DjTokenCreateView
 from djoser.views import TokenDestroyView as DjTokenDestroyView
-from faq.models import FAQ, FAQ_CACHE_KEY
 from rest_framework import filters, mixins, status, viewsets
-from rest_framework.permissions import SAFE_METHODS
+# from rest_framework.permissions import SAFE_METHODS
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
-from tickets.models import City  # noqa: I001
-from travel_diary.models import Activity, Travel  # noqa: I001
-
-from . import openapi
+# noqa I004
+from faq.models import FAQ, FAQ_CACHE_KEY  # noqa: I001
+from tickets.models import City
+from travel_diary.models import Activity, Travel
+from . import openapi  # noqa: I003
 from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
 from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
 from .filter import sort_by_time, sort_transfer
 from .permissions import IsAuthorOrAdmin
-from .serializers import (ActivityListSerializer, ActivityPostSerializer,
-                          CitySerializer, FAQSerializer, TicketSerializer,
-                          TravelListSerializer, TravelSerializer)
+# from .serializers import (ActivityListSerializer, ActivityPostSerializer,
+#                           CitySerializer, FAQSerializer, TicketSerializer,
+#                           TravelListSerializer, TravelSerializer)
+from .serializers import (ActivitySerializer, CitySerializer, FAQSerializer,
+                          TicketSerializer, TravelListSerializer,
+                          TravelSerializer)
 from .utils import get_calendar_days, lazy_cycling
 from .validators import params_validation
 
@@ -146,11 +149,12 @@ class ActivityViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
     """Базовый ViewSet для карточек."""
     queryset = Activity.objects.all()
     permission_classes = (IsAuthorOrAdmin,)
+    serializer_class = ActivitySerializer
 
-    def get_serializer_class(self) -> Serializer:
-        if self.request.method in SAFE_METHODS:
-            return ActivityListSerializer
-        return ActivityPostSerializer
+    # def get_serializer_class(self) -> Serializer:
+    #     if self.request.method in SAFE_METHODS:
+    #         return ActivityListSerializer
+    #     return ActivityPostSerializer
 
     def perform_create(self, serializer: Serializer) -> None:
         """Переопределение метода perform_create."""

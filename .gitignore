@@ -162,6 +162,10 @@ cython_debug/
 # Vscode
 .vscode
 .vscode/**/*
+
+# Project-related stuff
 media/
+frontend/
+frontend_b/
 
 =garb=

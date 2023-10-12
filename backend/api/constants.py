@@ -57,7 +57,7 @@ MAX_IMAGES_PER_TRAVEL: Final[int] = 20
 MEDIA_FORMATS: Final[tuple[str]] = ('jpeg', 'jpg', 'png', 'svg')
 """Разрешенные медиа-форматы."""
 
-FILE_FORMATS: Final[set[str]] = ('jpeg', 'jpg', 'pdf', 'png', 'svg')
+FILE_FORMATS: Final[tuple[str]] = ('jpeg', 'jpg', 'pdf', 'png', 'svg')
 """Разрешенные форматы файлов."""
 
 FAQ_CACHE_KEY = 'faq'

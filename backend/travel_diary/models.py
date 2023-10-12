@@ -143,6 +143,7 @@ class Activity(models.Model):
 
 
 class Media(models.Model):
+    filename = models.CharField('Имя файла', max_length=255)
     media = models.FileField(
         upload_to='files/',
         verbose_name='Файл',
