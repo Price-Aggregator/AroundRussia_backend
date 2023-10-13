@@ -3,12 +3,12 @@ from datetime import datetime, time
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
 from drf_spectacular.utils import extend_schema_field
-from faq.models import FAQ
 from rest_framework import serializers
+
+from faq.models import FAQ
 from tickets.models import City
 from travel_diary.models import Activity, Image, Media, Travel
-
-from .constants import CATEGORIES
+from .constants import CATEGORIES  # noqa: I003
 from .fields import AirportField, Base64FileField, Base64ImageField
 from .validators import travel_dates_validator
 
