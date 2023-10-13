@@ -184,8 +184,8 @@ class ActivitySerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         medias = validated_data.pop('medias', None)
+        Media.objects.filter(activity_id=instance.id).delete()
         if medias:
-            Media.objects.filter(activity_id=instance.id).delete()
             self.add_medias(medias, instance)
         return super().update(instance, validated_data)
 
