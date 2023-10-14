@@ -105,7 +105,7 @@ class ActivityMediaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Media
-        fields = ('filename', 'media')
+        fields = ('id', 'filename', 'media')
 
 
 class ActivitySerializer(serializers.ModelSerializer):
