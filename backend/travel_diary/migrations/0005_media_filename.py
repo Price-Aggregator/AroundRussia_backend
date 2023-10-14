@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='media',
             name='filename',
-            field=models.CharField(max_length=255, verbose_name='Имя файла'),
+            field=models.CharField(default='noname', max_length=255, verbose_name='Имя файла'),
             preserve_default=False,
         ),
     ]
