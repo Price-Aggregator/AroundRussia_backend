@@ -1,28 +1,37 @@
 import os
 from http import HTTPStatus
 
-from dotenv import load_dotenv
 import requests
-from rest_framework import filters, status, viewsets, serializers
+from django.core.cache import cache
+from django.db.models import Sum
+from djoser.views import TokenCreateView as DjTokenCreateView
+from djoser.views import TokenDestroyView as DjTokenDestroyView
+from faq.models import FAQ, FAQ_CACHE_KEY
+from rest_framework import filters, mixins, status, viewsets
+from rest_framework.permissions import SAFE_METHODS
+from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
-from tickets.models import City
-from drf_spectacular.utils import (extend_schema, inline_serializer,
-                                   OpenApiParameter, OpenApiResponse,)
-from .constants import COUNT_TICKET, URL_SEARCH
-from .filter import sort_by_time, sort_transfer
-from .serializers import (CitySerializer, TicketSerializer,
-                          TicketRequestSerializer,
-                          TicketResponseSerializer)
-from .utils import add_arrival_time, get_calendar_days
-from .validators import params_validation
+from tickets.models import City  # noqa: I001
+from travel_diary.models import Activity, Travel  # noqa: I001
 
-load_dotenv()
+from . import openapi
+from .constants import BLOCK_CITY, COUNT_TICKET, URL_SEARCH
+from .exceptions import EmptyResponseError, InvalidDateError, ServiceError
+from .filter import sort_by_time, sort_transfer
+from .permissions import IsAuthorOrAdmin
+from .serializers import (ActivityListSerializer, ActivityPostSerializer,
+                          CitySerializer, FAQSerializer, TicketSerializer,
+                          TravelListSerializer, TravelSerializer)
+from .utils import get_calendar_days, lazy_cycling
+from .validators import params_validation
 
 TOKEN = os.getenv('TOKEN')
 
 
-class CityViewSet(viewsets.ReadOnlyModelViewSet):
+class CityViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """ViewSet для получения городов."""
     serializer_class = CitySerializer
     queryset = City.objects.all()
     filter_backends = (filters.SearchFilter,)
@@ -30,162 +39,127 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CalendarView(APIView):
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                'origin',
-                description='IATA-code for origin city'
-            ),
-            OpenApiParameter(
-                'destination',
-                description='IATA-code for destination city'
-            ),
-            OpenApiParameter(
-                'departure_at',
-                description=('Date of departure from the city departure'
-                             '(in the format YYYY-MM-DD)')
-            )
-        ],
-        responses={
-            200: inline_serializer(
-                'Getting_date_prices',
-                fields={
-                    'date': serializers.CharField(),
-                    'price': serializers.IntegerField()
-                }
-            ),
-            400: inline_serializer(
-                'Bad_request',
-                fields={
-                    'InvalidDate': serializers.CharField()
-                }
-            ),
-            404: inline_serializer(
-                'Not_found',
-                fields={
-                    'Invalid IATA-code': serializers.CharField()
-                }
-            )
-        }
-    )
-    def get(self, request):
+
+    @openapi.calendar_get
+    def get(self, request: Request) -> Response:
         """
-        View for price calendar.
-        :param origin: The IATA-code for city departure.
-        :param destination: The IATA-code for city destination.
-        :param departure_at: Date of departure from the
-        city departure (in the format YYYY-MM-DD).
-        :return: data{date: price} for departure_at +-15 days in advance.
+        Функция для календаря цен.
         """
-        cities = [request.GET.get('origin'), request.GET.get('destination')]
+        cities = [request.query_params.get('origin'),
+                  request.query_params.get('destination')]
         for code in cities:
             if not City.objects.filter(code=code).exists():
                 return Response(
                     {
-                        'InvalidIATA-code': f'Incorrect IATA-code for {code}',
+                        'InvalidIATA-code': f'Некорректный IATA-код {code}',
                     }, status=status.HTTP_404_NOT_FOUND
                 )
-        response = get_calendar_days(request)
-        if 'InvalidDate' in response:
-            stat = status.HTTP_400_BAD_REQUEST
-        else:
-            stat = status.HTTP_200_OK
-        return Response(response, status=stat)
+            if code in BLOCK_CITY:
+                return Response(
+                    {
+                        'Error': 'Извините, в данный момент аэропорт закрыт',
+                    }, status=status.HTTP_400_BAD_REQUEST
+                )
+        try:
+            response = get_calendar_days(request)
+            return Response(response, status=status.HTTP_200_OK)
+        except ServiceError as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except InvalidDateError as e:
+            return Response(
+                {'InvalidDate': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except EmptyResponseError as e:
+            return Response(
+                {'EmptyResponse': str(e)},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class SearchTicketView(APIView):
-    @extend_schema(description=(
-        'Функция для поиска билетов. '
-        ' Запросы необходимо передавать через RequestBody'),
-        parameters=[
-            OpenApiParameter(
-                'origin',
-                description=(
-                    '(optional if destination set) IATA-code for origin city')
-            ),
-            OpenApiParameter(
-                'destination',
-                description=(
-                    '(optional if origin set) IATA-code for destination city')
-            ),
-            OpenApiParameter(
-                'departure_at',
-                description=(
-                    '(optional) Date of departure from the city departure'
-                    '(in the format YYYY-MM-DD)')
-            ),
-            OpenApiParameter(
-                'return_at',
-                description=(
-                    '(optional) Date of return from the city departure'
-                    '(in the format YYYY-MM-DD)')
-            ),
-            OpenApiParameter(
-                'one_way',
-                description=(
-                    '(optional) One way ticket. true or false true by default')
-            ),
-            OpenApiParameter(
-                'direct',
-                description=(
-                    '(optional) Only direct flights.'
-                    'true or false. false by default')
-            ),
-            OpenApiParameter(
-                'limit',
-                description=(
-                    '(optional) Number of records in answer.'
-                    'max=1000. 30 by default')
-            ),
-            OpenApiParameter(
-                'page',
-                description='(optional) Page number.'
-            ),
-            OpenApiParameter(
-                'sorting',
-                description=(
-                    '(optional) Sorting type.'
-                    'Available sorting: time, price, route.')
-            ),
-
-            OpenApiParameter(
-                'token',
-                description='(required if not in .env) travelpayout API token'
-            )
-    ],
-        request=TicketRequestSerializer(),
-        responses={
-            200: OpenApiResponse(response=TicketResponseSerializer()),
-            400: inline_serializer(
-                'Bad_Request',
-                fields={
-                    'InvalidData': serializers.CharField()
-                }
-            ),
-            404: inline_serializer(
-                'Not_Found',
-                fields={
-                    'Invalid IATA-code': serializers.CharField()
-                }
-            )
-    }
-    )
-    def post(self, request):
+    @openapi.search_ticket_post
+    def post(self, request: Request) -> Response:
         """Функция для поиска билетов."""
 
         params = request.data
         params['token'] = TOKEN
         params['limit'] = COUNT_TICKET
         if params_validation(params):
-            if params['sorting'] == 'time':
+            if 'sorting' in params and params['sorting'] == 'time':
                 params['sorting'] = 'price'
                 response_data = requests.get(URL_SEARCH, params=params,).json()
-                response_data = sort_by_time(response_data)
+                sort_by_time(response_data)
             else:
                 response_data = requests.get(URL_SEARCH, params=params,).json()
-            if 'direct' in params and params['direct'] == 'true':
-                response_data = sort_transfer(response_data)
-            response_data = add_arrival_time(response_data)
+            if 'direct' in params and params['direct'] == 'false':
+                sort_transfer(response_data)
+            response_data = lazy_cycling(response_data)
             my_serializer = TicketSerializer(data=response_data, many=True)
             return Response(my_serializer.initial_data)
         return Response(HTTPStatus.BAD_REQUEST)
+
+
+class TokenCreateView(DjTokenCreateView):
+    """Исправлена документация."""
+    @openapi.token_login
+    def post(self, request: Request, **kwargs) -> Response:
+        return super().post(request, **kwargs)
+
+
+class TokenDestroyView(DjTokenDestroyView):
+    """Исправлена документация."""
+    @openapi.token_destroy
+    def post(self, request: Request) -> Response:
+        return super().post(request)
+
+
+class TravelViewSet(mixins.CreateModelMixin,
+                    mixins.DestroyModelMixin,
+                    mixins.ListModelMixin,
+                    mixins.UpdateModelMixin,
+                    viewsets.GenericViewSet):
+    """ViewSet для получения путешествий."""
+    permission_classes = (IsAuthorOrAdmin,)
+
+    def get_queryset(self):
+        queryset = (Travel.objects.all() if self.request.user.is_staff
+                    else Travel.objects.filter(traveler=self.request.user))
+        return queryset.annotate(
+            total_price=Sum('activities__price')
+        ).order_by('-id')
+
+    def get_serializer_class(self) -> Serializer:
+        return (TravelListSerializer if self.action == 'list'
+                else TravelSerializer)
+
+    def perform_create(self, serializer: Serializer) -> None:
+        serializer.save(traveler=self.request.user)
+
+
+class ActivityViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
+                      mixins.UpdateModelMixin, mixins.RetrieveModelMixin,
+                      viewsets.GenericViewSet):
+    """Базовый ViewSet для карточек."""
+    queryset = Activity.objects.all()
+    permission_classes = (IsAuthorOrAdmin,)
+
+    def get_serializer_class(self) -> Serializer:
+        if self.request.method in SAFE_METHODS:
+            return ActivityListSerializer
+        return ActivityPostSerializer
+
+    def perform_create(self, serializer: Serializer) -> None:
+        """Переопределение метода perform_create."""
+        serializer.save(author=self.request.user)
+
+
+class FAQViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    "ViewSet returns a frequently asked questions list."
+    serializer_class = FAQSerializer
+
+    def get_queryset(self):
+        return cache.get_or_set(FAQ_CACHE_KEY, FAQ.objects.all, timeout=None)
