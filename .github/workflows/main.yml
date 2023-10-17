@@ -17,9 +17,9 @@ jobs:
            script: |
              cd /opt/app-gototravel
              sudo docker-compose down --remove-orphans
-             sudo docker-compose rm -f backend
+             sudo docker-compose rm -f backend frontend
              sudo docker image prune -af
-             sudo docker-compose pull backend
+             sudo docker-compose pull backend frontend
              rm -f .env
              touch .env
              echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
