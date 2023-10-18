@@ -3,8 +3,8 @@ from datetime import datetime, time
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
 from drf_spectacular.utils import extend_schema_field
-from rest_framework import serializers
-
+from rest_framework import serializers  # noqa: I001
+# noqa: I004
 from faq.models import FAQ
 from tickets.models import City
 from travel_diary.models import Activity, Image, Media, Travel

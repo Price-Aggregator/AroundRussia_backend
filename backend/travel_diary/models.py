@@ -4,8 +4,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import F
 from django.dispatch import receiver
-
-from api.validators import validate_file_extension
+# noqa: I004, I001
+from api.validators import validate_file_extension  # noqa: I001
 
 User = get_user_model()
 
