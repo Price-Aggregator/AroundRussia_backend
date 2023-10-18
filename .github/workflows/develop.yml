@@ -1,0 +1,84 @@
+name: AroundRussia test server workflow
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+   tests:
+     runs-on: ubuntu-latest
+     steps:
+       - name: Checkout repo
+         uses: actions/checkout@v3
+       - name: Set up Python
+         uses: actions/setup-python@v2
+         with:
+           python-version: 3.11
+           cache: 'pip'
+       - name: Install dependencies
+         run: |
+           python -m pip install --upgrade pip
+           pip install -r requirements/requirements.lint.txt
+       - name: Test with flake8
+         run: |
+           python -m flake8
+   build_and_push_to_docker_hub:
+     name: Push Docker image to DockerHub
+     runs-on: ubuntu-latest
+     needs: tests
+     steps:
+       - name: Check out the repo
+         uses: actions/checkout@v2
+       - name: Set up Docker Buildx
+         uses: docker/setup-buildx-action@v1
+       - name: Login to Docker
+         uses: docker/login-action@v1
+         with:
+           username: ${{ secrets.DOCKER_USERNAME }}
+           password: ${{ secrets.DOCKER_PASSWORD }}
+       - name: Push to Docker Hub
+         uses: docker/build-push-action@v2
+         with:
+           context: backend/
+           push: true
+           tags: |
+             ${{ secrets.DOCKER_USERNAME }}/around-russia-backend:${{ github.sha }}
+             ${{ secrets.DOCKER_USERNAME }}/around-russia-backend:latest
+   deploy:
+     runs-on: ubuntu-latest
+     needs: build_and_push_to_docker_hub
+     steps:
+       - name: executing remote ssh commands to deploy
+         uses: appleboy/ssh-action@master
+         with:
+           host: ${{ secrets.SSH_HOST }}
+           username: ${{ secrets.USER }}
+           key: ${{ secrets.SSH_KEY }}
+           passphrase: ${{ secrets.PASSPHRASE }}
+           script: |
+             cd /opt/test-app-gototravel
+             sudo docker-compose down --remove-orphans
+             sudo docker-compose rm -f test-backend
+             sudo docker image prune -af
+             rm -rf static_folder
+             sudo docker-compose pull test-backend
+             rm -f .env
+             touch .env
+             echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
+             echo DB_NAME=${{ secrets.DB_NAME }} >> .env
+             echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
+             echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+             echo DB_HOST=${{ secrets.TEST_DB_HOST }} >> .env
+             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+             echo DJANGO_KEY=${{ secrets.DJANGO_KEY }} >> .env
+             echo DEBUG=${{ secrets.DEBUG }} >> .env
+             echo HOST=${{ secrets.TEST_HOST }} >> .env
+             echo TOKEN=${{ secrets.AVIA_TOKEN }} >> .env
+             echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
+             echo EMAIL_HOST=${{ secrets.EMAIL_HOST }} >> .env
+             echo EMAIL_USER=${{ secrets.EMAIL_USER }} >> .env
+             echo EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }} >> .env
+             echo EMAIL_PORT=${{ secrets.EMAIL_PORT }} >> .env
+             echo REDIS_HOST=${{ secrets.TEST_REDIS_HOST }} >> .env
+             sudo docker-compose up -d --build
