@@ -1,10 +1,11 @@
 import os
 
-from api.validators import validate_file_extension
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import F
 from django.dispatch import receiver
+
+from api.validators import validate_file_extension
 
 User = get_user_model()
 
@@ -143,6 +144,7 @@ class Activity(models.Model):
 
 
 class Media(models.Model):
+    filename = models.CharField('Имя файла', max_length=255)
     media = models.FileField(
         upload_to='files/',
         verbose_name='Файл',
