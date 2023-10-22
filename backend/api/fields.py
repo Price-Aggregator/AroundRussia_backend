@@ -56,3 +56,8 @@ class Base64FileField(serializers.FileField, GenericBase64):
     def to_internal_value(self, data):
         data_mime_prefix = ('data:application', 'data:image')
         return self._to_internal_value(data, data_mime_prefix, FILE_FORMATS)
+
+    def to_representation(self, value):
+        if not value:
+            return None
+        return value.name
