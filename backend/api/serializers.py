@@ -1,14 +1,14 @@
-from datetime import datetime
+from datetime import datetime, time
 
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer as DjUserCreateSerializer
 from drf_spectacular.utils import extend_schema_field
+from rest_framework import serializers  # noqa: I001
+# noqa: I004
 from faq.models import FAQ
-from rest_framework import serializers
 from tickets.models import City
 from travel_diary.models import Activity, Image, Media, Travel
-
-from .constants import CATEGORIES
+from .constants import CATEGORIES  # noqa: I003
 from .fields import AirportField, Base64FileField, Base64ImageField
 from .validators import travel_dates_validator
 
@@ -99,23 +99,36 @@ class UserSerializer(DjUserCreateSerializer):
         return super().save(**kwargs)
 
 
+class ActivityMediaSerializer(serializers.ModelSerializer):
+    filename = serializers.CharField()
+    media = Base64FileField()
+
+    class Meta:
+        model = Media
+        fields = ('id', 'filename', 'media')
+
+
 class ActivitySerializer(serializers.ModelSerializer):
     """Базовый сериализатор для карточек."""
     travel = serializers.IntegerField(source='travel_id', write_only=True)
+    medias = ActivityMediaSerializer(many=True)
 
     class Meta:
         model = Activity
-        fields = ('id',
-                  'travel',
-                  'name',
-                  'category',
-                  'date',
-                  'time',
-                  'price',
-                  'description',
-                  'address',
-                  'origin',
-                  'destination')
+        fields = (
+            'id',
+            'travel',
+            'name',
+            'category',
+            'date',
+            'time',
+            'price',
+            'description',
+            'address',
+            'origin',
+            'destination',
+            'medias'
+        )
 
     def validate(self, data: dict) -> dict | None:
         if data['category'] not in CATEGORIES:
@@ -141,33 +154,12 @@ class ActivitySerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Необходимо указать адрес.'
                 )
+        if not data.get('time'):
+            data['time'] = time(0, 0, 0, 0)
         return data
 
-
-class ActivityMediaSerializer(serializers.Serializer):
-    media = Base64FileField()
-
-    def to_representation(self, instance):
-        return super().to_representation(instance).get('media')
-
-
-class ActivityListSerializer(ActivitySerializer):
-    """Сериализатор списочного представления активностей."""
-    medias = serializers.SerializerMethodField()
-
-    @extend_schema_field(list[str])
-    def get_medias(self, obj):
-        request = self.context.get('request')
-        return ActivityMediaSerializer(obj.medias,
-                                       many=True,
-                                       context={'request': request}).data
-
-    class Meta(ActivitySerializer.Meta):
-        fields = ActivitySerializer.Meta.fields + ('medias',)
-
     def to_representation(self, instance: Activity) -> dict:
-        answer = (
-            super(ActivityListSerializer, self).to_representation(instance))
+        answer = super().to_representation(instance)
         if instance.category != 'flight':
             answer.pop('origin')
             answer.pop('destination')
@@ -175,21 +167,10 @@ class ActivityListSerializer(ActivitySerializer):
             answer.pop('address')
         return answer
 
-
-class ActivityPostSerializer(ActivitySerializer):
-    """Сериализатор для создания активности."""
-    medias = serializers.ListField(
-        child=Base64FileField(use_url=True),
-        allow_empty=True, write_only=True
-    )
-
-    class Meta(ActivitySerializer.Meta):
-        fields = ActivitySerializer.Meta.fields + ('medias',)
-
     def add_medias(self, medias, activity):
         Media.objects.bulk_create(
             [Media(
-                media=media,
+                **media,
                 activity=activity
             ) for media in medias]
         )
@@ -203,8 +184,8 @@ class ActivityPostSerializer(ActivitySerializer):
 
     def update(self, instance, validated_data):
         medias = validated_data.pop('medias', None)
+        Media.objects.filter(activity_id=instance.id).delete()
         if medias:
-            Media.objects.filter(activity_id=instance.id).delete()
             self.add_medias(medias, instance)
         return super().update(instance, validated_data)
 
@@ -256,7 +237,7 @@ class TravelSerializer(serializers.ModelSerializer):
 class TravelListSerializer(TravelSerializer):
     """Сериализатор для вывода списка путешествий с активностями."""
 
-    activities = ActivityListSerializer(many=True)
+    activities = ActivitySerializer(many=True)
     total_price = serializers.DecimalField(**Activity.PRICE_FORMAT)
     images = serializers.SerializerMethodField()
 
